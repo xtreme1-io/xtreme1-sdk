@@ -243,6 +243,39 @@ class Client:
 
         return _to_single(datasets, total)
 
+    def _query_data_under_dataset(
+            self,
+            dataset_id: Union[int, str],
+            page_no: int = 1,
+            page_size: int = 10,
+            name: Optional[str] = None,
+            create_start_time: Optional[Iterable] = None,
+            create_end_time: Optional[Iterable] = None,
+            sort_by: str = 'CREATED_AT',
+            ascending: Optional[bool] = True,
+            annotation_status: Optional[str] = None
+    ) -> Dict:
+        endpoint = 'data/findByPage'
+
+        create_start_time = datetime(*create_start_time) if create_start_time else datetime(1000, 1, 1)
+        create_end_time = datetime(*create_end_time) if create_end_time else datetime.today()
+
+        params = {
+            'datasetId': dataset_id,
+            'pageNo': page_no,
+            'pageSize': page_size,
+            'name': name,
+            'createStartTime': create_start_time,
+            'createEndTime': create_end_time,
+            'sortField': sort_by,
+            'ascOrDesc': 'ASC' if ascending else 'DESC',
+            'annotationStatus': annotation_status
+        }
+
+        resp = self.api.get_request(endpoint=endpoint, params=params)
+
+        return resp
+
     def query_data_under_dataset(
             self,
             dataset_id: Union[int, str],
@@ -297,24 +330,17 @@ class Client:
         Dict
             JSON data containing all the data you're querying and information of all the files within these data.
         """
-        endpoint = 'data/findByPage'
-
-        create_start_time = datetime(*create_start_time) if create_start_time else datetime(1000, 1, 1)
-        create_end_time = datetime(*create_end_time) if create_end_time else datetime.today()
-
-        params = {
-            'datasetId': dataset_id,
-            'pageNo': page_no,
-            'pageSize': page_size,
-            'name': name,
-            'createStartTime': create_start_time,
-            'createEndTime': create_end_time,
-            'sortField': sort_by,
-            'ascOrDesc': 'ASC' if ascending else 'DESC',
-            'annotationStatus': annotation_status
-        }
-
-        resp = self.api.get_request(endpoint=endpoint, params=params)
+        resp = self._query_data_under_dataset(
+            dataset_id=dataset_id,
+            page_no=page_no,
+            page_size=page_size,
+            name=name,
+            create_start_time=create_start_time,
+            create_end_time=create_end_time,
+            sort_by=sort_by,
+            ascending=ascending,
+            annotation_status=annotation_status
+        )
 
         rps_dict = {
             "pageSize": resp.get('pageSize'),
@@ -583,7 +609,7 @@ class Client:
             data = self.query_data(data_id)
         else:
             if dataset_id:
-                data = self.query_data_under_dataset(dataset_id)
+                data = self._query_data_under_dataset(dataset_id)
             else:
                 raise ParamException(message='You need to pass either data_id or dataset_id !!!')
 
