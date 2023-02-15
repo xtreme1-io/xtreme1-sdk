@@ -1,9 +1,7 @@
 import os
-import json
-from rich import print_json
 from os.path import join, exists
-from ..exporter._standard import _to_json, _to_csv, _to_txt, _to_xml
-from ..exporter._popular import _to_coco, _to_voc, _to_yolo, _to_labelme, _to_kitti
+from ..exporter._standard import _to_json
+from ..exporter._popular import _to_coco, _to_voc, _to_labelme
 from ..exceptions import *
 
 __supported_format__ = {
@@ -90,12 +88,12 @@ class Annotation:
         Returns
         -------
         dict
-            Formats that support transformations
+            Formats that support transformations.
         """
 
         return self._SUPPORTED_FORMAT
 
-    def head(self, count: int = 5):
+    def head(self, count: int = 5) -> list:
         """Check out the first 5
 
         Parameters
@@ -110,7 +108,7 @@ class Annotation:
         """
         return self.annotation[:count]
 
-    def tail(self, count=5):
+    def tail(self, count=5) -> list:
         """Check out the last 5
 
         Parameters
@@ -136,63 +134,47 @@ class Annotation:
         """
         return self.annotation
 
-    def convert(self, format: str, export_folder: str) -> bool:
+    def convert(self, format: str, export_folder: str):
         """Convert the saved result to a target format.
         Find more info, see `description <https://docs.xtreme1.io/xtreme1-docs>`_.
 
         Parameters
         ----------
         format: str
-            Target format,Optional (JSON, CSV, XML, TXT, COCO, VOC, YOLO, LABEL_ME). Case-insensitive
+            Target format,Optional (JSON, COCO, VOC, LABEL_ME).
+            Case-insensitive
 
         export_folder: str
-            The path to save the conversion result
+            The path to save the conversion result.
 
         Returns
         -------
-        bool
-            True: Conversion complete.
+        None
 
         """
         format = format.upper()
-        if format == 'JSON':
-            self.to_json(self.__gen_dir(export_folder))
-        elif format == 'CSV':
-            self.to_csv(self.__gen_dir(export_folder))
-        elif format == 'XML':
-            self.to_xml(self.__gen_dir(export_folder))
-        elif format == 'TXT':
-            self.to_txt(self.__gen_dir(export_folder))
-        elif format in ['COCO', 'VOC', 'YOLO', 'LABELME']:
+        if format in ['JSON']:
+            if format == 'JSON':
+                self.to_json(self.__gen_dir(export_folder))
+        elif format in ['COCO', 'VOC', 'LABELME']:
             if self.anno_type == 'IMAGE':
                 if format == 'COCO':
                     self.to_coco(self.__gen_dir(export_folder))
                 elif format == 'VOC':
                     self.to_voc(self.__gen_dir(export_folder))
-                elif format == 'YOLO':
-                    self.to_yolo(self.__gen_dir(export_folder))
                 else:
                     self.to_labelme(self.__gen_dir(export_folder))
             else:
                 raise ConverterException(message='Annotations do not support this format')
-        elif format in ['KITTI']:
-            if self.anno_type == 'LIDAR_FUSION':
-                if format == 'KITTI':
-                    self.to_kitti(self.__gen_dir(export_folder))
-            else:
-                raise ConverterException(message='Annotations do not support this format')
-        elif self.anno_type == 'LIDAR_BASIC':
-            pass
         else:
-            raise ConverterException(message='Annotations do not support this format')
-        return True
+            raise ConverterException(message=f'Do not support this format <{format}>')
 
     def to_json(self, export_folder: str):
         """Convert the saved result to a json file in the xtreme1 standard format.
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -202,63 +184,15 @@ class Annotation:
         _to_json(annotation=self.annotation,
                  export_folder=self.__gen_dir(export_folder))
 
-    def to_csv(self, export_folder: str):
-        """Convert the saved result to a csv file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-        _to_csv(annotation=self.annotation,
-                dataset_name=self.dataset_name,
-                export_folder=self.__gen_dir(export_folder))
-
-    def to_xml(self, export_folder: str):
-        """Convert the saved result to a xml file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-        _to_xml(annotation=self.annotation,
-                dataset_name=self.dataset_name,
-                export_folder=self.__gen_dir(export_folder))
-
-    def to_txt(self, export_folder: str):
-        """Convert the saved result to a txt file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-        _to_txt(annotation=self.annotation,
-                dataset_name=self.dataset_name,
-                export_folder=self.__gen_dir(export_folder))
-
     def to_coco(self, export_folder: str):
         """
         Export data in coco format, and the resulting format varies somewhat depending on the tool type
-        (RECTANGLE,POLYGON,POLYLINE,KEYPOINTS).
+        (RECTANGLE,POLYGON,POLYLINE).
         Note that exports in this format only support image-type annotations.
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -274,10 +208,11 @@ class Annotation:
 
     def to_voc(self, export_folder: str):
         """
+        Export data in voc format.
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -291,32 +226,13 @@ class Annotation:
         else:
             raise ConverterException(message='This annotations do not support export to voc format')
 
-    def to_yolo(self, export_folder: str):
-        """
-
-        Parameters
-        ----------
-        export_folder: The path to save the conversion result
-
-        Returns
-        -------
-        None
-
-        """
-        if self.anno_type == 'IMAGE':
-            _to_yolo(annotation=self.annotation,
-                     dataset_name=self.dataset_name,
-                     export_folder=self.__gen_dir(export_folder))
-        else:
-            raise ConverterException(message='This annotations do not support export to yolo format')
-
     def to_labelme(self, export_folder: str):
-        """Export data in label_me format.
+        """Export data in labelme format.
         Note that exports in this format only support image-type annotations.
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -328,22 +244,3 @@ class Annotation:
                         export_folder=self.__gen_dir(export_folder))
         else:
             raise ConverterException(message='This annotations do not support export to labelme format')
-
-    def to_kitti(self, export_folder: str):
-        """
-
-        Parameters
-        ----------
-        export_folder: The path to save the conversion result
-
-        Returns
-        -------
-        None
-
-        """
-        if self.anno_type == 'LIDAR_FUSION':
-            _to_kitti(annotation=self.annotation,
-                      dataset_name=self.dataset_name,
-                      export_folder=self.__gen_dir(export_folder))
-        else:
-            raise ConverterException(message='This annotations do not support export to kitti format')

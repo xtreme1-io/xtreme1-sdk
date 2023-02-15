@@ -81,7 +81,7 @@ class Result:
             export_folder = self.export_folder
         return export_folder
 
-    def supported_format(self):
+    def supported_format(self) -> dict:
         """Query the supported conversion format.
 
         Returns
@@ -112,7 +112,7 @@ class Result:
         Parameters
         ----------
         count: int
-            Displays the last n results in the list. The default number is 5
+            Displays the last n results in the list. The default number is 5.
 
         Returns
         -------
@@ -139,15 +139,14 @@ class Result:
         Parameters
         ----------
         format: str
-            Target format,Optional (JSON, CSV, XML, TXT, COCO, VOC, YOLO, LABEL_ME). Case-insensitive
+            Target format,Optional (JSON, COCO, VOC, LABEL_ME). Case-insensitive.
 
         export_folder: str
-            The path to save the conversion result
+            The path to save the conversion result.
 
         Returns
         -------
-        bool
-            True: Conversion complete.
+        None
 
         """
 
@@ -158,7 +157,7 @@ class Result:
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -168,51 +167,6 @@ class Result:
 
         self.annotation.to_json(export_folder=self.__ensure_dir(export_folder))
 
-    def to_csv(self, export_folder: str = None):
-        """Convert the saved result to a csv file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-
-        self.annotation.to_csv(export_folder=self.__ensure_dir(export_folder))
-
-    def to_xml(self, export_folder: str = None):
-        """Convert the saved result to a xml file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-
-        self.annotation.to_xml(export_folder=self.__ensure_dir(export_folder))
-
-    def to_txt(self, export_folder: str = None):
-        """Convert the saved result to a txt file in the xtreme1 standard format.
-
-        Parameters
-        ----------
-        export_folder
-
-        Returns
-        -------
-        None
-
-        """
-
-        self.annotation.to_txt(export_folder=self.__ensure_dir(export_folder))
-
     def to_coco(self, export_folder: str = None):
         """
         Export data in coco format, and the resulting format varies somewhat depending on the tool type
@@ -221,7 +175,7 @@ class Result:
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -233,10 +187,11 @@ class Result:
 
     def to_voc(self, export_folder: str = None):
         """
+        Export data in voc format.
 
         Parameters
         ----------
-        export_folder: The path to save the conversion result
+        export_folder: The path to save the conversion result.
 
         Returns
         -------
@@ -245,21 +200,6 @@ class Result:
         """
 
         self.annotation.to_voc(export_folder=self.__ensure_dir(export_folder))
-
-    def to_yolo(self, export_folder: str = None):
-        """
-
-        Parameters
-        ----------
-        export_folder: The path to save the conversion result
-
-        Returns
-        -------
-        None
-
-        """
-
-        self.annotation.to_yolo(export_folder=self.__ensure_dir(export_folder))
 
     def to_labelme(self, export_folder: str = None):
         """Export data in label_me format.
@@ -276,18 +216,3 @@ class Result:
         """
 
         self.annotation.to_labelme(export_folder=self.__ensure_dir(export_folder))
-
-    def to_kitti(self, export_folder):
-        """
-
-        Parameters
-        ----------
-        export_folder: The path to save the conversion result
-
-        Returns
-        -------
-        None
-
-        """
-
-        self.annotation.to_kitti(export_folder=self.__ensure_dir(export_folder))
