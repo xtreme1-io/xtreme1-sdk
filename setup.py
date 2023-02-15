@@ -7,7 +7,7 @@ setuptools.setup(
     name="xtreme1",
     version="0.5.5",
     author="Basic AI",
-    author_email="zhangsihao@basicfinder.com",
+    author_email="nico@basic.ai",
     description="xtreme1 sdk",
     long_description=long_description,
     long_description_content_type="text/markdown",
