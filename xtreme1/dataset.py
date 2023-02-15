@@ -243,6 +243,14 @@ class Dataset:
     def query_ontology(
             self
     ) -> Ontology:
+        """
+        Query the ontology of current dataset.
+
+        Returns
+        -------
+        Ontology
+            An `Ontology` object.
+        """
         return self._client.query_ontology(
             des_id=self.id,
             des_type='dataset',

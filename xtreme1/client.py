@@ -811,7 +811,29 @@ class Client:
             des_type='ontology_center',
             page_no: int = 1,
             page_size: int = 100
-    ):
+    ) -> Ontology:
+        """
+        Query the ontology from the given dataset or ontology center.
+
+        Parameters
+        ----------
+        des_id: Optional[int], default None
+            A dataset id or ontology id.
+            Ontology id is the id of ontology from ontology center.
+        name: Optional[str], default None
+            The name of ontology from ontology center.
+        des_type: str, default 'ontology_center'
+            The source of ontology: 'ontology_center' or 'dataset'.
+        page_no: int
+            Current page number.
+        page_size: int
+            The max number of ontologies displayed in one query.
+
+        Returns
+        -------
+        Ontology
+            An `Ontology` object.
+        """
         if not des_id and not name:
             raise ParamException(message="Can't miss both des_id and name!")
 
@@ -843,6 +865,23 @@ class Client:
             ontology_name: str,
             dataset_type: str,
     ) -> Ontology:
+        """
+        Create an empty ontology in ontology center.
+        Notice that every dataset has an empty ontology when it's created.
+
+        Parameters
+        ----------
+        ontology_name: str
+            The name of the ontology.
+        dataset_type: str
+            An annotation type that can only choose from this list:
+            ['LIDAR_FUSION', 'LIDAR_BASIC', 'IMAGE']
+
+        Returns
+        -------
+        Ontology
+            An `Ontology` object.
+        """
         endpoint = 'ontology/create'
 
         payload = {
