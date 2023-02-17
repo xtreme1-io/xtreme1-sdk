@@ -13,12 +13,9 @@ pip install xtreme1
 ```python
 from xtreme1.client import Client
 
-BASE_URL = 'https://x1-community.alidev.beisai.com'
-ACCESS_TOKEN = '...jDC9Pfk9Xstt9vaanXkh8...'
-
 x1_client = Client(
-    base_url=BASE_URL, 
-    access_token=ACCESS_TOKEN
+    base_url='https://app.basic.ai/', 
+    access_token='...'
 )
 ```
 ---
