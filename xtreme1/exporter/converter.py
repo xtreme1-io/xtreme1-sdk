@@ -8,7 +8,7 @@ from ..exceptions import *
 
 
 class Result:
-    _SUPPORTED_FORMAT_INFO = __supported_format__
+    __SUPPORTED_FORMAT_INFO = __supported_format__
 
     def __init__(self,
                  src_zipfile: str,
@@ -81,6 +81,7 @@ class Result:
             export_folder = self.export_folder
         return export_folder
 
+    @property
     def supported_format(self) -> dict:
         """Query the supported conversion format.
 
@@ -89,7 +90,7 @@ class Result:
         dict
             Formats that support transformations.
         """
-        return self._SUPPORTED_FORMAT_INFO
+        return self.__SUPPORTED_FORMAT_INFO
 
     def head(self, count=5):
         """Check out the first 5

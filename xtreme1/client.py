@@ -73,7 +73,7 @@ class Client:
         ----------
         dataset_id: Union[int, str]
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         new_name: str
             New name of the dataset.
@@ -107,7 +107,7 @@ class Client:
         ----------
         dataset_id: Union[int, str]
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         is_sure: bool, default False
             Sure or not sure to delete this dataset.
@@ -191,7 +191,7 @@ class Client:
         ----------
         dataset_id: Union[int, str, None], default None
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         page_no: int, default 1
             Page number of the total result.
@@ -265,7 +265,7 @@ class Client:
         ----------
         dataset_id: Union[int, str]
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         page_no: int, default 1
             Page number of the total result.
@@ -341,7 +341,7 @@ class Client:
         ----------
         dataset_id: Union[int, str]
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         data_id: Union[int, List[int]]
             An id or list of ids of the data you want to delete.
@@ -466,7 +466,7 @@ class Client:
             A local path or URL.
         dataset_id: Union[int, str]
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
         is_local: bool, default True
             Whether the data is local or not.
@@ -564,7 +564,7 @@ class Client:
             Pass this parameter to download given data.
         dataset_id: Union[int, str, None], default None
             A dataset id. You can find this in the last part of the dataset url, for example:
-            ``https://x1-community.alidev.beisai.com/#/datasets/overview?id=766416``.
+            ``https://app.basic.ai/#/datasets/overview?id=766416``.
             Also, the id can be found in the attributes of an `Dataset` object.
             Pass this parameter to download all data from a given dataset.
         remain_directory_structure: bool, default True
@@ -880,7 +880,7 @@ class Client:
         ----------
         des_id: Union[int, str]:
             An ontology id. You can find this in the last part of the ontology url, for example:
-            ``https://x1-community.alidev.beisai.com/#/ontology/class?id=480002``.
+            ``https://app.basic.ai/#/ontology/class?id=480002``.
             Also, the id can be found in the attributes of an `Ontology` object.
         is_sure: bool, default False
             Sure or not sure to delete this ontology.

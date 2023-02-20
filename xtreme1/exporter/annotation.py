@@ -4,6 +4,7 @@ from ..exporter._standard import _to_json
 from ..exporter._popular import _to_coco, _to_voc, _to_labelme
 from ..exceptions import *
 
+
 __supported_format__ = {
     "JSON": {
         "description": 'Xtreme1 standard json format.',
@@ -40,7 +41,7 @@ __supported_format__ = {
 
 
 class Annotation:
-    _SUPPORTED_FORMAT = __supported_format__
+    __SUPPORTED_FORMAT = __supported_format__
 
     def __init__(
             self,
@@ -70,7 +71,7 @@ class Annotation:
         return f"Annotation(dataset_id={self.dataset_id}, dataset_name={self.dataset_name})"
 
     def __setattr__(self, key, value):
-        if key == '_SUPPORTED_FORMAT':
+        if key == '__SUPPORTED_FORMAT':
             raise NoPermissionException(message='You are performing an operation that is not allowed')
         else:
             self.__dict__[key] = value
@@ -81,7 +82,7 @@ class Annotation:
             os.makedirs(save_folder, exist_ok=True)
         return save_folder
 
-
+    @property
     def supported_format(self) -> dict:
         """Query the supported conversion format.
 
@@ -91,7 +92,7 @@ class Annotation:
             Formats that support transformations.
         """
 
-        return self._SUPPORTED_FORMAT
+        return self.__SUPPORTED_FORMAT
 
     def head(self, count: int = 5) -> list:
         """Check out the first 5
