@@ -13,7 +13,7 @@ pip install xtreme1
 ```python
 from xtreme1.client import Client
 
-BASE_URL = 'https://x1-community.alidev.beisai.com'
+BASE_URL = 'http://localhost:8190'
 ACCESS_TOKEN = '...jDC9Pfk9Xstt9vaanXkh8...'
 
 x1_client = Client(

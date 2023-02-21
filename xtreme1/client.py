@@ -243,6 +243,39 @@ class Client:
 
         return _to_single(datasets, total)
 
+    def _query_data_under_dataset(
+            self,
+            dataset_id: Union[int, str],
+            page_no: int = 1,
+            page_size: int = 10,
+            name: Optional[str] = None,
+            create_start_time: Optional[Iterable] = None,
+            create_end_time: Optional[Iterable] = None,
+            sort_by: str = 'CREATED_AT',
+            ascending: Optional[bool] = True,
+            annotation_status: Optional[str] = None
+    ) -> Dict:
+        endpoint = 'data/findByPage'
+
+        create_start_time = datetime(*create_start_time) if create_start_time else datetime(1000, 1, 1)
+        create_end_time = datetime(*create_end_time) if create_end_time else datetime.today()
+
+        params = {
+            'datasetId': dataset_id,
+            'pageNo': page_no,
+            'pageSize': page_size,
+            'name': name,
+            'createStartTime': create_start_time,
+            'createEndTime': create_end_time,
+            'sortField': sort_by,
+            'ascOrDesc': 'ASC' if ascending else 'DESC',
+            'annotationStatus': annotation_status
+        }
+
+        resp = self.api.get_request(endpoint=endpoint, params=params)
+
+        return resp
+
     def query_data_under_dataset(
             self,
             dataset_id: Union[int, str],
@@ -297,24 +330,17 @@ class Client:
         Dict
             JSON data containing all the data you're querying and information of all the files within these data.
         """
-        endpoint = 'data/findByPage'
-
-        create_start_time = datetime(*create_start_time) if create_start_time else datetime(1000, 1, 1)
-        create_end_time = datetime(*create_end_time) if create_end_time else datetime.today()
-
-        params = {
-            'datasetId': dataset_id,
-            'pageNo': page_no,
-            'pageSize': page_size,
-            'name': name,
-            'createStartTime': create_start_time,
-            'createEndTime': create_end_time,
-            'sortField': sort_by,
-            'ascOrDesc': 'ASC' if ascending else 'DESC',
-            'annotationStatus': annotation_status
-        }
-
-        resp = self.api.get_request(endpoint=endpoint, params=params)
+        resp = self._query_data_under_dataset(
+            dataset_id=dataset_id,
+            page_no=page_no,
+            page_size=page_size,
+            name=name,
+            create_start_time=create_start_time,
+            create_end_time=create_end_time,
+            sort_by=sort_by,
+            ascending=ascending,
+            annotation_status=annotation_status
+        )
 
         rps_dict = {
             "pageSize": resp.get('pageSize'),
@@ -583,7 +609,7 @@ class Client:
             data = self.query_data(data_id)
         else:
             if dataset_id:
-                data = self.query_data_under_dataset(dataset_id)
+                data = self._query_data_under_dataset(dataset_id)
             else:
                 raise ParamException(message='You need to pass either data_id or dataset_id !!!')
 
@@ -811,7 +837,29 @@ class Client:
             des_type='ontology_center',
             page_no: int = 1,
             page_size: int = 100
-    ):
+    ) -> Ontology:
+        """
+        Query the ontology from the given dataset or ontology center.
+
+        Parameters
+        ----------
+        des_id: Optional[int], default None
+            A dataset id or ontology id.
+            Ontology id is the id of ontology from ontology center.
+        name: Optional[str], default None
+            The name of ontology from ontology center.
+        des_type: str, default 'ontology_center'
+            The source of ontology: 'ontology_center' or 'dataset'.
+        page_no: int
+            Current page number.
+        page_size: int
+            The max number of ontologies displayed in one query.
+
+        Returns
+        -------
+        Ontology
+            An `Ontology` object.
+        """
         if not des_id and not name:
             raise ParamException(message="Can't miss both des_id and name!")
 
@@ -843,6 +891,23 @@ class Client:
             ontology_name: str,
             dataset_type: str,
     ) -> Ontology:
+        """
+        Create an empty ontology in ontology center.
+        Notice that every dataset has an empty ontology when it's created.
+
+        Parameters
+        ----------
+        ontology_name: str
+            The name of the ontology.
+        dataset_type: str
+            An annotation type that can only choose from this list:
+            ['LIDAR_FUSION', 'LIDAR_BASIC', 'IMAGE']
+
+        Returns
+        -------
+        Ontology
+            An `Ontology` object.
+        """
         endpoint = 'ontology/create'
 
         payload = {
