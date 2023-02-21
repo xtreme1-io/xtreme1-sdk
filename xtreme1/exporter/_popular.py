@@ -3,6 +3,7 @@ import json
 import cv2
 import numpy as np
 import base64
+import warnings
 
 import requests
 from rich.progress import track
@@ -161,14 +162,10 @@ def _to_voc(annotation: list, dataset_name: str, export_folder: str):
     for anno in track(annotation, description='progress'):
         try:
             file_name = f"{anno['data'].get('name')}-{anno['data'].get('id')}"
-            json_file = join(export_folder, file_name + '.json')
-            annotations = []
+            xml_file = join(export_folder, file_name + '.xml')
             img_width = anno['data']['width']
             img_height = anno['data']['height']
             img_url = anno['data']['imageUrl']
-            rps = requests.get(img_url)
-            img_f_base64 = base64.b64encode(rps.content)
-            img_data = img_f_base64.decode()
             result = anno['result']
             if not result:
                 continue
@@ -186,7 +183,7 @@ def _to_voc(annotation: list, dataset_name: str, export_folder: str):
 
                 filename = doc.createElement('filename')
                 root.appendChild(filename)
-                filename_text = doc.createTextNode(img_url.split('/')[-1])
+                filename_text = doc.createTextNode(img_url.split('?')[0].split('/')[-1])
                 filename.appendChild(filename_text)
 
                 source = doc.createElement('source')
@@ -234,92 +231,73 @@ def _to_voc(annotation: list, dataset_name: str, export_folder: str):
 
                         tool_type = obj['type']
                         if tool_type == 'RECTANGLE':
-                            coordinate = [[min(points_x), min(points_y)], [max(points_x), min(points_y)],
-                                          [max(points_x), max(points_y)], [min(points_x), max(points_y)]]
+
+                            _object = doc.createElement('object')
+                            root.appendChild(_object)
+
+                            sup_cate = doc.createElement('supercategory')
+                            _object.appendChild(sup_cate)
+                            sup_cate_text = doc.createTextNode('')
+                            sup_cate.appendChild(sup_cate_text)
+
+                            _name = doc.createElement('name')
+                            _object.appendChild(_name)
+                            name_text = doc.createTextNode(label)
+                            _name.appendChild(name_text)
+
+                            _pose = doc.createElement('pose')
+                            _object.appendChild(_pose)
+                            pose_text = doc.createTextNode('Unspecified')
+                            _pose.appendChild(pose_text)
+
+                            _truncated = doc.createElement('truncated')
+                            _object.appendChild(_truncated)
+                            truncated_text = doc.createTextNode('0')
+                            _truncated.appendChild(truncated_text)
+
+                            _difficult = doc.createElement('difficult')
+                            _object.appendChild(_difficult)
+                            difficult_text = doc.createTextNode('0')
+                            _difficult.appendChild(difficult_text)
+
+                            class_values = obj['classValues']
+                            for cv in class_values:
+                                _attrk = doc.createElement(cv['name'])
+                                _object.appendChild(_attrk)
+                                _attrv_text = doc.createTextNode(cv['value'])
+                                _attrk.appendChild(_attrv_text)
+
+                            _bndbox = doc.createElement('bndbox')
+                            _object.appendChild(_bndbox)
+
+                            xmin = doc.createElement('xmin')
+                            _bndbox.appendChild(xmin)
+                            xmin_text = doc.createTextNode(str(min(points_x)))
+                            xmin.appendChild(xmin_text)
+
+                            ymin = doc.createElement('ymin')
+                            _bndbox.appendChild(ymin)
+                            ymin_text = doc.createTextNode(str(min(points_y)))
+                            ymin.appendChild(ymin_text)
+
+                            xmax = doc.createElement('xmax')
+                            _bndbox.appendChild(xmax)
+                            xmax_text = doc.createTextNode(str(max(points_x)))
+                            xmax.appendChild(xmax_text)
+
+                            ymax = doc.createElement('ymax')
+                            _bndbox.appendChild(ymax)
+                            ymax_text = doc.createTextNode(str(max(points_y)))
+                            ymax.appendChild(ymax_text)
+
                         else:
-                            coordinate = points
-                        attributes = {}
-                        class_values = obj['classValues']
-                        for cv in class_values:
-                            attributes[cv['name']] = cv['value']
+                            warnings.warn(
+                                message=f"This format not support {tool_type}")
+                            continue
 
-                        new_anno = {
-                            "label": label,
-                            "points": coordinate,
-                            "group_id": None,
-                            "shape_type": type_mapping[tool_type],
-                            "flags": {}
-                        }
-                        if attributes:
-                            new_anno['attributes'] = attributes
-                        annotations.append(new_anno)
+                with open(xml_file, 'wb+') as xml_file:
+                    xml_file.write(doc.toprettyxml(encoding='utf-8'))
 
-                        _object = doc.createElement('object')
-                        root.appendChild(_object)
-
-                        sup_cate = doc.createElement('supercategory')
-                        _object.appendChild(sup_cate)
-                        sup_cate_text = doc.createTextNode('')
-                        sup_cate.appendChild(sup_cate_text)
-
-                        _name = doc.createElement('name')
-                        _object.appendChild(_name)
-                        name_text = doc.createTextNode(label)
-                        _name.appendChild(name_text)
-
-                        _pose = doc.createElement('pose')
-                        _object.appendChild(_pose)
-                        pose_text = doc.createTextNode('Unspecified')
-                        _pose.appendChild(pose_text)
-
-                        _truncated = doc.createElement('truncated')
-                        _object.appendChild(_truncated)
-                        truncated_text = doc.createTextNode('0')
-                        _truncated.appendChild(truncated_text)
-
-                        _difficult = doc.createElement('difficult')
-                        _object.appendChild(_difficult)
-                        difficult_text = doc.createTextNode('0')
-                        _difficult.appendChild(difficult_text)
-
-                        _bndbox = doc.createElement('bndbox')
-                        _object.appendChild(_bndbox)
-
-                        xmin = doc.createElement('xmin')
-                        _bndbox.appendChild(xmin)
-                        xmin_text = doc.createTextNode(str(min(xl)))
-                        xmin.appendChild(xmin_text)
-
-                        ymin = doc.createElement('ymin')
-                        _bndbox.appendChild(ymin)
-                        ymin_text = doc.createTextNode(str(min(yl)))
-                        ymin.appendChild(ymin_text)
-
-                        xmax = doc.createElement('xmax')
-                        _bndbox.appendChild(xmax)
-                        xmax_text = doc.createTextNode(str(max(xl)))
-                        xmax.appendChild(xmax_text)
-
-                        ymax = doc.createElement('ymax')
-                        _bndbox.appendChild(ymax)
-                        ymax_text = doc.createTextNode(str(max(yl)))
-                        ymax.appendChild(ymax_text)
-
-                    xml_file = os.path.join(xml_dir, file_name + '.xml')
-                    with open(xml_file, 'wb+') as xml_file:
-                        xml_file.write(doc.toprettyxml(encoding='utf-8'))
-
-                anno_json = {
-                    "version": "5.0.1",
-                    "flags": {},
-                    "shapes": annotations,
-                    "imagePath": img_url.split('?')[0].split('/')[-1],
-                    "imageData": img_data,
-                    "imageHeight": img_height,
-                    "imageWidth": img_width
-                }
-                with open(json_file, 'w', encoding='utf-8') as nf:
-                    json.dump(anno_json, nf, indent=1, ensure_ascii=False)
 
         except Exception:
             raise ConverterException
