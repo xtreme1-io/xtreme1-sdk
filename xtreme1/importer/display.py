@@ -1,5 +1,5 @@
-from xtreme1.exceptions import *
-from xtreme1.importer.popular import _coco_to_x1, _voc_to_x1, _yolo_to_x1, _labelme_to_x1, _kitti_to_x1
+from ..exceptions import *
+from ..importer._popular import _coco_to_x1, _voc_to_x1, _yolo_to_x1, _labelme_to_x1, _kitti_to_x1
 
 __supported_source_type__ = {
     "COCO": {
@@ -29,12 +29,7 @@ class Display:
                  ):
         self.source = source
 
-    def __setattr__(self, key, value):
-        if key == '_SUPPORTED_FORMAT':
-            raise NoPermissionException(message='You are performing an operation that is not allowed')
-        else:
-            self.__dict__[key] = value
-
+    @property
     def supported_source(self):
         """Query the supported conversion format.
 
@@ -62,46 +57,21 @@ class Display:
             self.parse_kitti()
 
     def parse_coco(self):
-        """
 
-        Returns
-        -------
-
-        """
         _coco_to_x1(source=self.source)
 
     def parse_voc(self):
-        """
 
-        Returns
-        -------
-
-        """
         _voc_to_x1(source=self.source)
 
     def parse_yolo(self):
-        """
 
-        Returns
-        -------
-
-        """
         _yolo_to_x1(source=self.source)
 
     def parse_labelme(self):
-        """
 
-        Returns
-        -------
-
-        """
         _labelme_to_x1(source=self.source)
 
     def parse_kitti(self):
-        """
 
-        Returns
-        -------
-
-        """
         _kitti_to_x1(source=self.source)
