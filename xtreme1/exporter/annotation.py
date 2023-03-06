@@ -221,9 +221,7 @@ class Annotation:
 
         """
         if self.anno_type == 'IMAGE':
-            _to_voc(annotation=self.annotation,
-                    dataset_name=self.dataset_name,
-                    export_folder=self.__gen_dir(export_folder))
+            _to_voc(annotation=self.annotation, export_folder=self.__gen_dir(export_folder))
         else:
             raise ConverterException(message='This annotations do not support export to voc format')
 

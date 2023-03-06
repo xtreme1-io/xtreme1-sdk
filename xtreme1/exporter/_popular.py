@@ -51,11 +51,8 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                         tool_type = obj['type']
                         points = obj['contour']['points']
                         if tool_type == 'RECTANGLE':
-                            xl = []
-                            yl = []
-                            for point in points:
-                                xl.append(point['x'])
-                                yl.append(point['y'])
+                            xl = [round(x['x']) for x in points]
+                            yl = [round(y['y']) for y in points]
                             x0 = min(xl)
                             y0 = min(yl)
                             width = max(xl) - x0
@@ -74,8 +71,8 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                             coordinate = []
                             for point in points:
                                 coordinate.append([int(point['x']), int(point['y'])])
-                                segmentation.append(point['x'])
-                                segmentation.append(point['y'])
+                                segmentation.append(round(point['x']))
+                                segmentation.append(round(point['y']))
                             mask = np.zeros((img_height, img_width), dtype=np.int32)
                             cv2.fillPoly(mask, [np.array(coordinate)], 1)
                             aera = int(np.sum(mask))
@@ -91,8 +88,8 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                         elif tool_type == 'POLYLINE':
                             keypoints = []
                             for point in points:
-                                keypoints.append(point['x'])
-                                keypoints.append(point['y'])
+                                keypoints.append(round(point['x']))
+                                keypoints.append(round(point['y']))
                                 keypoints.append(2)
                             new_anno = {
                                 "id": object_id,
@@ -153,12 +150,7 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
         json.dump(anno_json, jf, indent=1, ensure_ascii=False)
 
 
-def _to_voc(annotation: list, dataset_name: str, export_folder: str):
-    type_mapping = {
-        "RECTANGLE": 'rectangle',
-        "POLYGON": 'polygon',
-        "POLYLINE": 'polyline'
-    }
+def _to_voc(annotation: list, export_folder: str):
     for anno in track(annotation, description='progress'):
         try:
             file_name = f"{anno['data'].get('name')}-{anno['data'].get('id')}"
@@ -221,13 +213,9 @@ def _to_voc(annotation: list, dataset_name: str, export_folder: str):
                         continue
                     else:
                         label = obj['className']
-                        points = []
-                        points_x = []
-                        points_y = []
-                        for point in obj['contour']['points']:
-                            points.append([point['x'], point['y']])
-                            points_x.append(point['x'])
-                            points_y.append(point['y'])
+                        points = obj['contour']['points']
+                        points_x = [round(x['x']) for x in points]
+                        points_y = [round(y['y']) for y in points]
 
                         tool_type = obj['type']
                         if tool_type == 'RECTANGLE':
@@ -338,9 +326,9 @@ def _to_labelme(annotation: list, export_folder: str):
                         points_x = []
                         points_y = []
                         for point in obj['contour']['points']:
-                            points.append([point['x'], point['y']])
-                            points_x.append(point['x'])
-                            points_y.append(point['y'])
+                            points.append([round(point['x']), round(point['y'])])
+                            points_x.append(round(point['x']))
+                            points_y.append(round(point['y']))
 
                         tool_type = obj['type']
                         if tool_type == 'RECTANGLE':
