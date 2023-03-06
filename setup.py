@@ -15,13 +15,14 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache",
         "Operating System :: OS Independent",
     ],
     install_requires=[
         'pyecharts',
         'rich',
-        'requests'
+        'requests',
+        'opencv-python'
     ],
     python_requires='>=3.9',
 )
