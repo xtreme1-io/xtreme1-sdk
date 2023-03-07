@@ -19,7 +19,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'pyecharts',
         'rich',
         'requests',
         'opencv-python'
