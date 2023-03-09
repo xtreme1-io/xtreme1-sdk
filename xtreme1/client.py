@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 from rich.progress import track
 
-from .api import Api
+from ._api import Api
 from .dataset import Dataset
 from .exceptions import SDKException, ParamException, DatasetIdException, DataIdException
 from .exporter.annotation import Annotation
@@ -937,7 +937,7 @@ class Client:
             is_sure=False
     ) -> bool:
         """
-        Delete the ontology in your online 'ontology center'.
+        Delete the ontology in your 'ontology center'.
         Notice that an ontology attached to a dataset can not be deleted.
 
         Parameters
