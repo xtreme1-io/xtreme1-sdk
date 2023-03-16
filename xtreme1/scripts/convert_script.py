@@ -15,8 +15,8 @@ def main():
     format = args.format
 
     try:
-        anno = Result(src_zipfile=src_zip, export_folder=dst_path)
-        anno.convert(format=format)
+        anno = Result(src_zipfile=src_zip)
+        anno.convert(format=format, export_folder=dst_path)
         code = "OK"
         message = ""
     except Exception as e:
