@@ -140,7 +140,7 @@ class Result:
         """
         return self.annotation
 
-    def convert(self, format: str, export_folder: str):
+    def convert(self, format: str):
         """Convert the saved result to a target format.
         Find more info, see `description <https://docs.xtreme1.io/xtreme1-docs>`_.
 
