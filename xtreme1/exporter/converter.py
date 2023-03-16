@@ -14,7 +14,6 @@ class Result:
 
     def __init__(self,
                  src_zipfile: str,
-                 export_folder: str = None,
                  dropna: bool = False
                  ):
         if zipfile.is_zipfile(src_zipfile):
@@ -23,7 +22,6 @@ class Result:
             raise SDKException(code='SourceError', message=f'{src_zipfile} is not zip')
         zip_name = basename(src_zipfile)
         self.dataset_name = '-'.join(splitext(zip_name)[0].split('-')[:-1])
-        self.export_folder = export_folder
         self.dropna = dropna
         self.annotation = self.__reconstitution()
 
@@ -140,7 +138,7 @@ class Result:
         """
         return self.annotation
 
-    def convert(self, format: str):
+    def convert(self, format: str, export_folder: str = None):
         """Convert the saved result to a target format.
         Find more info, see `description <https://docs.xtreme1.io/xtreme1-docs>`_.
 
@@ -159,16 +157,17 @@ class Result:
 
         """
         format = format.upper()
+        folder = self.__ensure_dir(export_folder)
         if format in ['JSON']:
             if format == 'JSON':
-                self.to_json(self.__ensure_dir(self.export_folder))
+                self.to_json(folder)
         elif format in ['COCO', 'VOC', 'LABELME']:
             if format == 'COCO':
-                self.to_coco(self.__ensure_dir(self.export_folder))
+                self.to_coco(folder)
             elif format == 'VOC':
-                self.to_voc(self.__ensure_dir(self.export_folder))
+                self.to_voc(folder)
             else:
-                self.to_labelme(self.__ensure_dir(self.export_folder))
+                self.to_labelme(folder)
         else:
             raise ConverterException(message=f'Do not support this format <{format}>')
 
@@ -185,7 +184,7 @@ class Result:
 
         """
 
-        _to_json(annotation=self.annotation, export_folder=self.__ensure_dir(self.export_folder))
+        _to_json(self.annotation, self.__ensure_dir(export_folder))
 
     def to_coco(self, export_folder: str = None):
         """
@@ -203,7 +202,7 @@ class Result:
 
         """
 
-        _to_coco(annotation=self.annotation, dataset_name= self.dataset_name, export_folder=self.__ensure_dir(self.export_folder))
+        _to_coco(self.annotation, dataset_name=self.dataset_name, export_folder=self.__ensure_dir(export_folder))
 
     def to_voc(self, export_folder: str = None):
         """
@@ -219,7 +218,7 @@ class Result:
 
         """
 
-        _to_voc(annotation=self.annotation, export_folder=self.__ensure_dir(self.export_folder))
+        _to_voc(self.annotation, self.__ensure_dir(export_folder))
 
     def to_labelme(self, export_folder: str = None):
         """Export data in label_me format.
@@ -235,4 +234,4 @@ class Result:
 
         """
 
-        _to_labelme(annotation=self.annotation, export_folder=self.__ensure_dir(self.export_folder))
+        _to_labelme(self.annotation, self.__ensure_dir(export_folder))
