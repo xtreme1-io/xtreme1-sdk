@@ -23,5 +23,8 @@ setuptools.setup(
         'requests',
         'opencv-python'
     ],
+    entry_points={
+        'console_scripts': ['convert_ctl=xtreme1.scripts.convert_script:main'],
+    },
     python_requires='>=3.9',
 )
