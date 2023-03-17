@@ -34,6 +34,8 @@ class DataUnlockedException(SDKException):
 class ConverterException(SDKException):
     code = 'NOT_SUPPORT'
 
+class DisplayException(SDKException):
+    code = 'NOT_SUPPORT'
 
 class SourceException(SDKException):
     code = 'UNPARSEABLE'
@@ -53,5 +55,6 @@ EXCEPTIONS = {
     DataIdException.code: DataIdException,
     NameDuplicatedException.code: NameDuplicatedException,
     ConverterException.code: ConverterException,
-    DataUnlockedException.code: DataUnlockedException
+    DataUnlockedException.code: DataUnlockedException,
+    DisplayException.code: DisplayException
 }
