@@ -5,13 +5,16 @@ import json
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('src_zip', type=str, help='zip file path')
-    parser.add_argument('dst_path', type=str, help='The path to save the results')
-    parser.add_argument('--format', type=str, default='json', help='object format(json,coco,voc,labelme)')
+    parser.add_argument('-src', type=str, help='zip file path')
+    parser.add_argument('-out', type=str, help='The path to save the results')
+    parser.add_argument('-rps', type=str, help='The json file in which the response is stored')
+    parser.add_argument('--format', type=str, default='json', help='object format(json,coco,voc,labelme)',
+                        choices=['coco', 'json', 'voc', 'labelme'])
     args = parser.parse_args()
 
-    src_zip = args.src_zip
-    dst_path = args.dst_path
+    src_zip = args.src
+    dst_path = args.out
+    response = args.rps
     format = args.format
 
     try:
@@ -21,8 +24,9 @@ def main():
         message = ""
     except Exception as e:
         code = "failed"
-        message = e
-    print(json.dumps({
-        "code": code,
-        "message": message
-    }))
+        message = str(e)
+    with open(response, 'w', encoding='utf-8') as rf:
+        json.dump({
+            "code": code,
+            "message": message
+        }, rf, ensure_ascii=False)

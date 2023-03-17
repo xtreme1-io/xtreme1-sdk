@@ -157,17 +157,16 @@ class Result:
 
         """
         format = format.upper()
-        folder = self.__ensure_dir(export_folder)
         if format in ['JSON']:
             if format == 'JSON':
-                self.to_json(folder)
+                self.to_json(export_folder)
         elif format in ['COCO', 'VOC', 'LABELME']:
             if format == 'COCO':
-                self.to_coco(folder)
+                self.to_coco(export_folder)
             elif format == 'VOC':
-                self.to_voc(folder)
+                self.to_voc(export_folder)
             else:
-                self.to_labelme(folder)
+                self.to_labelme(export_folder)
         else:
             raise ConverterException(message=f'Do not support this format <{format}>')
 
