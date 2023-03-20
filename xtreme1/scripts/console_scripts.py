@@ -28,7 +28,7 @@ def main():
             code = "OK"
             message = ""
         except Exception as e:
-            code = "failed"
+            code = "ERROR"
             message = str(e)
         rps_data = {
                 "code": code,
@@ -46,12 +46,12 @@ def main():
                 if not msg:
                     code = "OK"
                 else:
-                    code = 'failed'
+                    code = 'ERROR'
                 message = msg
             else:
                 raise DisplayException(message=f'Do not support this format:<{format}> to display')
         except Exception as e:
-            code = "failed"
+            code = "ERROR"
             message = str(e)
         rps_data = {
             "code": code,
