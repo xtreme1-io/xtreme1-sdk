@@ -12,7 +12,7 @@ def main():
     parser.add_argument('-out', type=str, help='The path to save the results')
     parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored')
     parser.add_argument('--format', type=str, default='json', help='object format(json,coco,voc,labelme)',
-                        choices=['coco', 'json', 'voc', 'labelme'])
+                        choices=['coco', 'voc', 'labelme'])
     args = parser.parse_args()
 
     mode = args.mode
