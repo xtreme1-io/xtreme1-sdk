@@ -74,10 +74,10 @@ class Result:
         return f"Offline annotation(dataset_name={self.dataset_name})"
 
     def __gen_dir(self, input_dir):
-        save_folder = join(input_dir, f'x1 dataset {self.dataset_name} annotations')
-        if not exists(save_folder):
-            os.makedirs(save_folder, exist_ok=True)
-        return save_folder
+        # save_folder = join(input_dir, f'x1 dataset {self.dataset_name} annotations')
+        if not exists(input_dir):
+            os.makedirs(input_dir, exist_ok=True)
+        return input_dir
 
     def __ensure_dir(self, input_dir):
         if input_dir:

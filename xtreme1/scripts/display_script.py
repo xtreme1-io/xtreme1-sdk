@@ -1,9 +1,7 @@
 import json
-import argparse
 import os
 from os.path import *
 import shutil
-from ..exceptions import DisplayException
 
 
 def list_files(in_path: str, match):
@@ -86,46 +84,3 @@ def parse_coco(src, out):
             with open(json_file, 'w', encoding='utf-8') as jf:
                 json.dump(final_json, jf)
     return error
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-src', type=str, help='source path')
-    parser.add_argument('-out', type=str, help='The path to save the display datas')
-    parser.add_argument('-rps', type=str, help='The json file in which the response is stored')
-    parser.add_argument('--format', type=str, default='coco', help='object format(coco)', choices=['coco', 'json'])
-    args = parser.parse_args()
-
-    src_path = args.src
-    dst_path = args.out
-    response = args.rps
-    format = args.format
-
-    # src_path = r"D:\Desktop\测试脚本\save"
-    # dst_path = r"D:\Desktop\测试脚本\save"
-    # response = r"D:\Desktop\测试脚本\save\log.json"
-    # format = 'coco'
-
-    try:
-        if format == 'coco':
-            msg = parse_coco(src_path, dst_path)
-            if not msg:
-                code = "OK"
-            else:
-                code = 'failed'
-            message = msg
-        else:
-            raise DisplayException(message=f'Do not support this format:<{format}> to display')
-    except Exception as e:
-        code = "failed"
-        message = str(e)
-    with open(response, 'w', encoding='utf-8') as rf:
-        json.dump({
-            "code": code,
-            "message": message
-        }, rf, ensure_ascii=False)
-# main()
-
-
-
-

@@ -119,8 +119,9 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                         continue
                     attributes = {}
                     class_values = obj['classValues']
-                    for cv in class_values:
-                        attributes[cv['name']] = cv['value']
+                    if class_values:
+                        for cv in class_values:
+                            attributes[cv['name']] = cv['value']
                     if attributes:
                         new_anno['attributes'] = attributes
                     if 'modelConfidence' in obj.keys():
