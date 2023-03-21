@@ -40,6 +40,8 @@ class DisplayException(SDKException):
 class SourceException(SDKException):
     code = 'UNPARSEABLE'
 
+class ParserException(SDKException):
+    code = 'UNABLE_TO_PARSE'
 
 class NoPermissionException(SDKException):
     code = 'NO_PERMISSION'
@@ -56,5 +58,7 @@ EXCEPTIONS = {
     NameDuplicatedException.code: NameDuplicatedException,
     ConverterException.code: ConverterException,
     DataUnlockedException.code: DataUnlockedException,
+    SourceException.code: SourceException,
+    ParserException.code: ParserException,
     DisplayException.code: DisplayException
 }

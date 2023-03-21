@@ -2,6 +2,7 @@ import json
 import os
 from os.path import *
 import shutil
+import nanoid
 
 
 def list_files(in_path: str, match):
@@ -24,6 +25,59 @@ def ensure_dir(input_dir):
     if not exists(input_dir):
         os.makedirs(input_dir, exist_ok=True)
     return input_dir
+
+
+def get_names(src_dir):
+    name_list = []
+    for file in list_files(src_dir, '.json'):
+        results = load_json(file)
+        for jc in results:
+            for obj in jc['objects']:
+                trc_name = obj.get('trackName')
+                if trc_name is None:
+                    continue
+                else:
+                    name_list.append(trc_name)
+    return name_list
+
+
+def parse_xtreme1(src, dst):
+    names = get_names(src)
+    name_num = 1
+    for file in list_files(src, '.json'):
+        results = load_json(file)
+        objects = []
+        for jc in results:
+            for obj in jc['objects']:
+                trc_name = obj.get('trackName')
+                trc_id = obj.get('trackId')
+                class_name = obj.get('className')
+                model_class = obj.get('modelClass')
+                if trc_name is None:
+                    while True:
+                        if str(name_num) not in names:
+                            break
+                        else:
+                            name_num += 1
+                    name = str(name_num)
+                    names.append(name)
+                    obj['trackName'] = name
+                if trc_id is None:
+                    obj['trackId'] = nanoid.generate(size=16)
+                if class_name is None:
+                    if model_class:
+                        obj['className'] = model_class
+                objects.append(obj)
+
+        f_json = {
+            "sourceType": "EXTERNAL_GROUND_TRUTH",
+            "objects": objects
+        }
+        file_name = '-'.join(splitext(basename(file))[0].split('-')[:-1])
+        new_file = join(dst, file_name + '.json')
+        with open(new_file, 'w', encoding='utf-8') as f:
+            json.dump(f_json, f)
+    return ''
 
 
 def parse_coco(src, out):
@@ -84,3 +138,5 @@ def parse_coco(src, out):
             with open(json_file, 'w', encoding='utf-8') as jf:
                 json.dump(final_json, jf)
     return error
+
+
