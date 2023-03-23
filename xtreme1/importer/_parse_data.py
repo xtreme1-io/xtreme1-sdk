@@ -127,7 +127,8 @@ def parse_coco(src, out):
                     "type": tool_type,
                     "trackName": str(anno['id']),
                     "className": id_label_mapping[anno['category_id']],
-                    "contour": points
+                    "contour": {
+                        "points": points}
                 }
                 objects.append(obj)
             final_json = {
