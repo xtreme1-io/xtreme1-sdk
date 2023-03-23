@@ -10,7 +10,7 @@ def main():
     parser.add_argument('-src', type=str, help='source path')
     parser.add_argument('-out', type=str, help='The path to save the results')
     parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored')
-    parser.add_argument('--format', type=str, default='json', help='object format(json,coco,voc,labelme)',
+    parser.add_argument('--format', type=str, default='xtreme1', help='object format(xtreme1,coco,voc,labelme)',
                         choices=['coco', 'voc', 'labelme', 'xtreme1'])
     args = parser.parse_args()
 

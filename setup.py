@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="xtreme1-sdk",
-    version="0.5.5",
+    version="0.6",
     author="Basic AI",
     author_email="nico@basic.ai",
     description="xtreme1 sdk",
@@ -21,7 +21,7 @@ setuptools.setup(
     install_requires=[
         'rich',
         'requests',
-        'opencv-python'
+        'nanoid'
     ],
     entry_points={
         'console_scripts': ['xtreme1_ctl=xtreme1.console_scripts:main'],

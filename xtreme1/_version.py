@@ -1,1 +1,1 @@
-__version__ = "Basic AI V0.6"
+__version__ = "Xtreme1 V0.6"

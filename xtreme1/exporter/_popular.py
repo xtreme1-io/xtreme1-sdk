@@ -1,6 +1,4 @@
 import json
-import cv2
-import numpy as np
 import base64
 import warnings
 
@@ -29,6 +27,17 @@ def _get_label(obj):
     else:
         label = str('null')
     return label
+
+def polygon_area(x, y):
+    area = 0
+    n = len(x)
+    for i in range(n):
+        j = (i + 1) % n
+        area += x[i] * y[j]
+        area -= x[j] * y[i]
+
+    area = abs(area) / 2.0
+    return round(area)
 
 
 def _to_coco(annotation: list, dataset_name: str, export_folder: str):
@@ -82,14 +91,14 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                         }
                     elif tool_type == 'POLYGON':
                         segmentation = []
-                        coordinate = []
+                        px = []
+                        py = []
                         for point in points:
-                            coordinate.append([int(point['x']), int(point['y'])])
+                            px.append(point['x'])
+                            py.append(point['y'])
                             segmentation.append(round(point['x']))
                             segmentation.append(round(point['y']))
-                        mask = np.zeros((img_height, img_width), dtype=np.int32)
-                        cv2.fillPoly(mask, [np.array(coordinate)], 1)
-                        aera = int(np.sum(mask))
+                        aera = polygon_area(px, py)
                         new_anno = {
                             "id": object_id,
                             "image_id": img_id,
