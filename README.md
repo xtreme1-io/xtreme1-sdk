@@ -3,7 +3,7 @@
 ## Installation
 
 ~~~python
-pip install xtreme1
+pip install xtreme1-sdk
 ~~~
 
 ---
@@ -13,12 +13,9 @@ pip install xtreme1
 ```python
 from xtreme1.client import Client
 
-BASE_URL = 'http://localhost:8190'
-ACCESS_TOKEN = '...jDC9Pfk9Xstt9vaanXkh8...'
-
 x1_client = Client(
-    base_url=BASE_URL, 
-    access_token=ACCESS_TOKEN
+    base_url='http://localhost:8190', 
+    access_token='...jDC9Pfk9Xstt9vaanXkh8...'
 )
 ```
 ---
@@ -240,3 +237,12 @@ model_result = img_model.predict(
 )
 ~~~
 
+### console_scripts
+
+If you have successfully installed this sdk,you can also use the command line for some operations.
+
+Use the following instructions to get detailed instructions
+
+~~~
+xtreme1_ctl -h
+~~~

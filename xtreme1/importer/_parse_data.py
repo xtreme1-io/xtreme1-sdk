@@ -2,7 +2,7 @@ import json
 import os
 from os.path import *
 import shutil
-import nanoid
+from nanoid import generate
 
 
 def list_files(in_path: str, match):
@@ -63,7 +63,7 @@ def parse_xtreme1(src, dst):
                     names.append(name)
                     obj['trackName'] = name
                 if trc_id is None:
-                    obj['trackId'] = nanoid.generate(size=16)
+                    obj['trackId'] = generate(size=16)
                 if class_name is None:
                     if model_class:
                         obj['className'] = model_class
@@ -119,6 +119,8 @@ def parse_coco(src, out):
                     tool_type = 'POLYLINE'
                     line = anno['keypoints']
                     points = [{"x": key_point[0], "y": key_point[1]}
+
+
                               for key_point in [line[i:i + 2] for i in range(len(line))[::3]]]
                 else:
                     continue

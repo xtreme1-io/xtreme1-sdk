@@ -24,7 +24,7 @@ setuptools.setup(
         'nanoid'
     ],
     entry_points={
-        'console_scripts': ['xtreme1_ctl=xtreme1.console_scripts:main'],
+        'console_scripts': ['xtreme1_ctl=xtreme1._console_scripts:main'],
     },
     python_requires='>=3.9',
 )
