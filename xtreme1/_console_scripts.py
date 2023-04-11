@@ -24,12 +24,17 @@ def main():
         if mode == 'export':
             anno = Result(src_zipfile=src_path)
             anno.convert(format=format, export_folder=dst_path)
+            code = 'OK'
+            message = ''
 
         else:
             data_parser = Parser(source_path=src_path)
-            data_parser.parser(format=format, output=dst_path)
-        code = "OK"
-        message = ""
+            message = data_parser.parser(format=format, output=dst_path)
+            if not message:
+                code = "OK"
+            else:
+                code = 'ERROR'
+
     except Exception as e:
         code = "ERROR"
         message = str(e)

@@ -82,64 +82,74 @@ def parse_xtreme1(src, dst):
 
 def parse_coco(src, out):
     imgs = list_files(src, ['.jpg', '.png', '.jpeg', '.bmp'])
-    coco_file = list_files(src, ['.json'])[0]
-    data = load_json(coco_file)
-    images = data['images']
-    categories = data['categories']
-    annotations = data['annotations']
-    id_name_mapping = {img['id']: img['file_name'] for img in images}
-    id_label_mapping = {label['id']: label['name'] for label in categories}
-    if not imgs:
-        error = 'The image was not found in the zip package'
+    coco_files = list_files(src, ['.json'])
+    if not coco_files:
+        error = 'The .json result file of coco format was not found in the zip package'
+    elif len(coco_files) == 1:
+        coco_file = coco_files[0]
+        data = load_json(coco_file)
+        images = data.get('images')
+        categories = data.get('categories')
+        annotations = data.get('annotations')
+        if not images or not categories or not annotations:
+            error = 'Cannot parse this format, unlike the coco standard format'
+        else:
+            id_name_mapping = {img['id']: img['file_name'] for img in images}
+            id_label_mapping = {label['id']: label['name'] for label in categories}
+            if not imgs:
+                error = "The image('.jpg', '.png', '.jpeg', '.bmp') was not found in the zip package"
+            else:
+                image_dir = ensure_dir(join(out, 'image'))
+                result_dir = ensure_dir(join(out, 'result'))
+                for img_file in imgs:
+                    new_img = join(image_dir, basename(img_file))
+                    shutil.copyfile(img_file, new_img)
+                name_anno_mapping = {}
+                for img_id in id_name_mapping.keys():
+                    name_anno_mapping[id_name_mapping[img_id]] = [x for x in annotations if x['image_id'] == img_id]
+
+                for name, annos in name_anno_mapping.items():
+                    json_file = join(result_dir, splitext(name)[0] + '.json')
+                    objects = []
+                    for anno in annos:
+                        if anno['bbox']:
+                            bbox = anno['bbox']
+                            tool_type = 'RECTANGLE'
+                            points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0]+bbox[2], "y": bbox[1]+bbox[3]}]
+                        elif anno['segmentation']:
+                            tool_type = 'POLYGON'
+                            segment = anno['segmentation']
+                            points = [{"x": seg_point[0], "y": seg_point[1]}
+                                      for seg_point in [segment[i:i+2] for i in range(len(segment))[::2]]]
+                        elif anno['keypoints']:
+                            tool_type = 'POLYLINE'
+                            line = anno['keypoints']
+                            points = [{"x": key_point[0], "y": key_point[1]}
+
+
+                                      for key_point in [line[i:i + 2] for i in range(len(line))[::3]]]
+                        else:
+                            continue
+
+                        obj = {
+                            "type": tool_type,
+                            "trackName": str(anno['id']),
+                            "className": id_label_mapping[anno['category_id']],
+                            "contour": {
+                                "points": points
+                            }
+                        }
+                        objects.append(obj)
+                    final_json = {
+                        "sourceType": 'sourceType',
+                        "sourceName": 'coco',
+                        "objects": objects
+                    }
+                    with open(json_file, 'w', encoding='utf-8') as jf:
+                        json.dump(final_json, jf)
+                error = ''
     else:
-        image_dir = ensure_dir(join(out, 'image'))
-        result_dir = ensure_dir(join(out, 'result'))
-        for img_file in imgs:
-            new_img = join(image_dir, basename(img_file))
-            shutil.copyfile(img_file, new_img)
-        error = ''
-        name_anno_mapping = {}
-        for img_id in id_name_mapping.keys():
-            name_anno_mapping[id_name_mapping[img_id]] = [x for x in annotations if x['image_id'] == img_id]
-
-        for name, annos in name_anno_mapping.items():
-            json_file = join(result_dir, splitext(name)[0] + '.json')
-            objects = []
-            for anno in annos:
-                if anno['bbox']:
-                    bbox = anno['bbox']
-                    tool_type = 'RECTANGLE'
-                    points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0]+bbox[2], "y": bbox[1]+bbox[3]}]
-                elif anno['segmentation']:
-                    tool_type = 'POLYGON'
-                    segment = anno['segmentation']
-                    points = [{"x": seg_point[0], "y": seg_point[1]}
-                              for seg_point in [segment[i:i+2] for i in range(len(segment))[::2]]]
-                elif anno['keypoints']:
-                    tool_type = 'POLYLINE'
-                    line = anno['keypoints']
-                    points = [{"x": key_point[0], "y": key_point[1]}
-
-
-                              for key_point in [line[i:i + 2] for i in range(len(line))[::3]]]
-                else:
-                    continue
-
-                obj = {
-                    "type": tool_type,
-                    "trackName": str(anno['id']),
-                    "className": id_label_mapping[anno['category_id']],
-                    "contour": {
-                        "points": points}
-                }
-                objects.append(obj)
-            final_json = {
-                "sourceType": 'sourceType',
-                "sourceName": 'coco',
-                "objects": objects
-            }
-            with open(json_file, 'w', encoding='utf-8') as jf:
-                json.dump(final_json, jf)
+        error = 'There are too many .json files to parse and expect only one .json file in the zip package'
     return error
 
 

@@ -47,9 +47,9 @@ class Parser:
         """
         format = format.upper()
         if format == 'COCO':
-            self.from_coco(output)
+            return self.from_coco(output)
         elif format == 'XTREME1':
-            self.from_xtreme1(output)
+            return self.from_xtreme1(output)
         else:
             raise ParserException(message=f'Do not support this format:<{format}> to parse')
 
@@ -66,7 +66,7 @@ class Parser:
         error message
 
         """
-        parse_coco(src=self.source_path, out=output)
+        return parse_coco(src=self.source_path, out=output)
 
     def from_xtreme1(self, output):
         """
@@ -79,5 +79,5 @@ class Parser:
         -------
 
         """
-        parse_xtreme1(src=self.source_path, dst=output)
+        return parse_xtreme1(src=self.source_path, dst=output)
 
