@@ -73,7 +73,7 @@ def parse_xtreme1(src, dst):
             "sourceType": "EXTERNAL_GROUND_TRUTH",
             "objects": objects
         }
-        file_name = '-'.join(splitext(basename(file))[0].split('-')[:-1])
+        file_name = splitext(basename(file))[0]
         new_file = join(dst, file_name + '.json')
         with open(new_file, 'w', encoding='utf-8') as f:
             json.dump(f_json, f)

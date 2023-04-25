@@ -177,7 +177,7 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
 def _to_voc(annotation: list, export_folder: str):
     for anno in track(annotation, description='progress'):
         try:
-            file_name = f"{anno['data'].get('name')}-{anno['data'].get('id')}"
+            file_name = anno['data'].get('name')
             xml_file = join(export_folder, file_name + '.xml')
             img_width = anno['data']['width']
             img_height = anno['data']['height']
@@ -324,7 +324,7 @@ def _to_labelme(annotation: list, export_folder: str):
     }
     for anno in track(annotation, description='progress'):
         try:
-            file_name = f"{anno['data'].get('name')}-{anno['data'].get('id')}"
+            file_name = anno['data'].get('name')
             json_file = join(export_folder, file_name + '.json')
             annotations = []
             img_width = anno['data']['width']
