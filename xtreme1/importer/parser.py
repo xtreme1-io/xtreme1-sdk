@@ -1,5 +1,5 @@
 from ..exceptions import ParserException
-from ._parse_data import parse_coco, parse_xtreme1
+from ._parse_data import parse_coco, parse_xtreme1, parse_kitti
 
 __supported_format__ = {
     "COCO": {
@@ -50,10 +50,12 @@ class Parser:
             return self.from_coco(output)
         elif format == 'XTREME1':
             return self.from_xtreme1(output)
+        elif format == 'KITTI':
+            return self.from_kitti(output)
         else:
             raise ParserException(message=f'Do not support this format:<{format}> to parse')
 
-    def from_coco(self, output):
+    def from_coco(self, output: str):
         """Parse the annotation result data in coco format.
 
         Parameters
@@ -67,6 +69,21 @@ class Parser:
 
         """
         return parse_coco(src=self.source_path, out=output)
+
+    def from_kitti(self, output: str):
+        """Parse the annotation result data in kitti dataset.
+
+        Parameters
+        ----------
+        output: str
+            The path to save the parsed results will be used for uploading.
+
+        Returns
+        -------
+        error message
+
+        """
+        return parse_kitti(kitti_dataset_dir=self.source_path, upload_dir=output)
 
     def from_xtreme1(self, output):
         """
