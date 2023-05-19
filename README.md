@@ -3,7 +3,7 @@
 ## Installation
 
 ~~~python
-pip install xtreme1-sdk
+Pip install git+https://github.com/xtreme1-io/xtreme1-sdk.git
 ~~~
 
 ---
