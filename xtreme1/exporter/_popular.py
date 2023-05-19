@@ -1,11 +1,13 @@
+import os
 import json
 import base64
 import warnings
-
+import numpy as np
+import math
 import requests
 from rich.progress import track
 from datetime import datetime
-from os.path import join
+from os.path import *
 from xml.dom.minidom import Document
 from .._version import __version__
 from ..exceptions import ConverterException
@@ -38,6 +40,12 @@ def polygon_area(x, y):
 
     area = abs(area) / 2.0
     return round(area)
+
+
+def ensure_dir(input_dir):
+    if not exists(input_dir):
+        os.makedirs(input_dir, exist_ok=True)
+    return input_dir
 
 
 def _to_coco(annotation: list, dataset_name: str, export_folder: str):
@@ -73,7 +81,7 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
 
                     tool_type = obj['type']
                     points = obj['contour']['points']
-                    if tool_type == 'RECTANGLE':
+                    if tool_type in ['RECTANGLE', 'BOUNDING_BOX']:
                         xl = [round(x['x']) for x in points]
                         yl = [round(y['y']) for y in points]
                         x0 = min(xl)
@@ -239,7 +247,7 @@ def _to_voc(annotation: list, export_folder: str):
                     points_y = [round(y['y']) for y in points]
 
                     tool_type = obj['type']
-                    if tool_type == 'RECTANGLE':
+                    if tool_type in ['RECTANGLE', 'BOUNDING_BOX']:
 
                         _object = doc.createElement('object')
                         root.appendChild(_object)
@@ -385,5 +393,71 @@ def _to_labelme(annotation: list, export_folder: str):
             raise ConverterException
 
 
-def _to_kitti(annotation: list, dataset_name: str, export_folder: str):
-    pass
+def alpha_in_pi(a):
+    pi = math.pi
+    return a - math.floor((a + pi) / (2 * pi)) * 2 * pi
+
+
+def lidar_to_cam(point, ext_matrix):
+    temp = np.hstack([np.array(point), np.array([1])])
+    return list((ext_matrix @ temp))[:3]
+
+
+def gen_alpha(rz, ext_matrix, lidar_center):
+    lidar_center = np.hstack((lidar_center, np.array([1])))
+
+    cam_point = ext_matrix @ np.array([np.cos(rz), np.sin(rz), 0, 1])
+    cam_point_0 = ext_matrix @ np.array([0, 0, 0, 1])
+    ry = -1*(alpha_in_pi(np.arctan2(cam_point[2]-cam_point_0[2], cam_point[0]-cam_point_0[0])))
+    cam_center = ext_matrix @ lidar_center.T
+    theta = alpha_in_pi(np.arctan2(cam_center[0], cam_center[2]))
+    alpha = ry - theta
+    return ry, alpha
+
+
+def _to_kitti(annotation: list, export_folder: str):
+    for anno in track(annotation, description='progress'):
+        data_info = anno['data']
+        file_name = data_info.get('name')
+        anno_objects = anno['result'].get('objects')
+        if anno_objects:
+            config_url = data_info['cameraConfigUrl']
+            cam_param = requests.get(config_url).json()
+            obj_rect = {f"{x['trackId']}-{x['contour']['viewIndex']}": x for x in anno_objects if x['type'] == '2D_RECT'}
+            obj_3d = {x['trackId']: x for x in anno_objects if x['type'] == '3D_BOX'}
+            for rect in obj_rect.values():
+                cam_index = rect['contour']['viewIndex']
+                ext_matrix = np.array(cam_param[cam_index]['camera_external']).reshape(4, 4)
+                label = rect['className']
+                truncated = "%.2f" % 0
+                occluded = 0
+                x_list = []
+                y_list = []
+                for one_point in rect['contour']['points']:
+                    x_list.append(one_point['x'])
+                    y_list.append(one_point['y'])
+                if rect['trackId'] in obj_3d.keys():
+                    contour_3d = obj_3d[rect['trackId']]['contour']
+                    length, width, height = contour_3d['size3D'].values()
+                    cur_rz = contour_3d['rotation3D']['z']
+
+                    ry, alpha = gen_alpha(cur_rz, ext_matrix, np.array(list(contour_3d['center3D'].values())))
+
+                    x, y, z = lidar_to_cam(list(contour_3d['center3D'].values()), ext_matrix)
+                    score = 1
+                    string = f"{label} {truncated} {occluded} {alpha:.2f} " \
+                             f"{min(x_list):.2f} {min(y_list):.2f} {max(x_list):.2f} {max(y_list):.2f} " \
+                             f"{height:.2f} {width:.2f} {length:.2f} " \
+                             f"{x:.2f} {y:.2f} {z:.2f} {ry:.2f} {score}\n"
+                else:
+                    string = f"DontCare -1 -1 -10 " \
+                             f"{min(x_list):.2f} {min(y_list):.2f} {max(x_list):.2f} {max(y_list):.2f} " \
+                             f"-1 -1 -1 -1000 -1000 -1000 -10\n"
+                txt_file = join(export_folder, f"label_{cam_index}", file_name + '.txt')
+                ensure_dir(dirname(txt_file))
+                with open(txt_file, 'a+', encoding='utf-8') as tf:
+                    tf.write(string)
+        else:
+            continue
+
+

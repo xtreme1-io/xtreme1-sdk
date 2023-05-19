@@ -6,7 +6,7 @@ from os.path import *
 from ..exceptions import *
 from ..exporter.annotation import __supported_format__
 from ..exporter._standard import _to_json
-from ..exporter._popular import _to_coco, _to_voc, _to_labelme
+from ..exporter._popular import _to_coco, _to_voc, _to_labelme, _to_kitti
 
 
 class Result:
@@ -145,7 +145,7 @@ class Result:
         Parameters
         ----------
         format: str
-            Target format,Optional (JSON, COCO, VOC, LABEL_ME).
+            Target format,Optional (JSON, COCO, VOC, LABEL_ME, KITTI).
             Case-insensitive
 
         export_folder: str
@@ -167,6 +167,9 @@ class Result:
                 self.to_voc(export_folder)
             else:
                 self.to_labelme(export_folder)
+        elif format in ['KITTI']:
+            if format == 'KITTI':
+                self.to_kitti(export_folder)
         else:
             raise ConverterException(message=f'Do not support this format <{format}>')
 
@@ -234,3 +237,19 @@ class Result:
         """
 
         _to_labelme(self.annotation, self.__ensure_dir(export_folder))
+
+    def to_kitti(self, export_folder: str = None):
+        """Export data in kitti format.
+        Note that exports in this format only support lidar-fusion annotations.
+
+        Parameters
+        ----------
+        export_folder: The path to save the conversion result
+
+        Returns
+        -------
+        None
+
+        """
+
+        _to_kitti(self.annotation, self.__ensure_dir(export_folder))
