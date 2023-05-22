@@ -158,12 +158,13 @@ def parse_coco(src, out):
 
 def parse_kitti(kitti_dataset_dir, upload_dir):
     kittidataset = KittiDataset(kitti_dataset_dir, upload_dir)
-    check_source = kittidataset.check_structure()
+    check_source = kittidataset.irregular_structure()
     if check_source:
         return check_source
     else:
         try:
             kittidataset.import_dataset()
+            return ''
         except Exception as e:
             return e
 
@@ -174,12 +175,13 @@ class KittiDataset:
         self.image_dir = join(dataset_dir, 'image_2')
         self.label_dir = join(dataset_dir, 'label_2')
         self.velodyne_dir = join(dataset_dir, 'velodyne')
-        self.pc_dir = ensure_dir(join(output_dir, 'point_cloud'))
-        self.image0_dir = ensure_dir(join(output_dir, 'image0'))
-        self.camera_config_dir = ensure_dir(join(output_dir, 'camera_config'))
-        self.result_dir = ensure_dir(join(output_dir, 'result'))
+        if not self.irregular_structure():
+            self.pc_dir = ensure_dir(join(output_dir, 'point_cloud'))
+            self.image0_dir = ensure_dir(join(output_dir, 'image0'))
+            self.camera_config_dir = ensure_dir(join(output_dir, 'camera_config'))
+            self.result_dir = ensure_dir(join(output_dir, 'result'))
 
-    def check_structure(self):
+    def irregular_structure(self):
         check_info = []
         for _dir in [self.calib_dir, self.image_dir, self.label_dir, self.velodyne_dir]:
             if not exists(_dir):

@@ -6,19 +6,20 @@ from .importer.parser import Parser
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, help='export or upload', choices=['export', 'upload'])
-    parser.add_argument('-src', type=str, help='source path(It is a folder for import and a zip package for export)')
-    parser.add_argument('-out', type=str, help='The path to save the results')
-    parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored')
-    parser.add_argument('--format', type=str, default='xtreme1', help='object format(xtreme1,coco,kitti,voc,labelme)',
-                        choices=['coco', 'voc', 'labelme', 'kitti'])
+    parser.add_argument('--mode', type=str, help='import or export', choices=['import', 'export'], required=True)
+    parser.add_argument('--src', type=str, help='source path(It is a folder for import or a zip package for export)', required=True)
+    parser.add_argument('--dst', type=str, help='The path to save the results', required=True)
+    parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored,'
+                                                              'if none, the output is in the console')
+    parser.add_argument('--fmt', type=str, default='xtreme1', help='object format(xtreme1,coco,kitti,voc,labelme)',
+                        choices=['coco', 'voc', 'labelme', 'kitti'], required=True)
     args = parser.parse_args()
 
     mode = args.mode
     src_path = args.src
-    dst_path = args.out
+    dst_path = args.dst
     response = args.rps
-    format = args.format
+    format = args.fmt
 
     try:
         if mode == 'export':
