@@ -398,11 +398,6 @@ def alpha_in_pi(a):
     return a - math.floor((a + pi) / (2 * pi)) * 2 * pi
 
 
-def lidar_to_cam(point, ext_matrix):
-    temp = np.hstack([np.array(point), np.array([1])])
-    return list((ext_matrix @ temp))[:3]
-
-
 def gen_alpha(rz, ext_matrix, lidar_center):
     lidar_center = np.hstack((lidar_center, np.array([1])))
 
@@ -443,7 +438,9 @@ def _to_kitti(annotation: list, export_folder: str):
 
                     ry, alpha = gen_alpha(cur_rz, ext_matrix, np.array(list(contour_3d['center3D'].values())))
 
-                    x, y, z = lidar_to_cam(list(contour_3d['center3D'].values()), ext_matrix)
+                    point = list(contour_3d['center3D'].values())
+                    temp = np.hstack((np.array([point[0], point[1], point[2]-height/2]), np.array([1])))
+                    x, y, z = list((ext_matrix @ temp))[:3]
                     score = 1
                     string = f"{label} {truncated} {occluded} {alpha:.2f} " \
                              f"{min(x_list):.2f} {min(y_list):.2f} {max(x_list):.2f} {max(y_list):.2f} " \
