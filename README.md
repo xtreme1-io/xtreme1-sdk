@@ -1,11 +1,16 @@
 # Xtreme1 Python SDK
 
 ## Installation
-
+Install xtreme1-sdk
 ~~~python
 pip install git+https://github.com/xtreme1-io/xtreme1-sdk.git
 ~~~
-
+or clone the repository locally and install with
+~~~
+git clone git@github.com:xtreme1-io/xtreme1-sdk.git
+cd xtreme1-sdk
+pip install -e .
+~~~
 ---
 
 ## Usage
