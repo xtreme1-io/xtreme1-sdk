@@ -5,6 +5,7 @@ import math
 from os.path import *
 import shutil
 from nanoid import generate
+from rich.progress import track
 from numpy.linalg import inv
 
 
@@ -168,6 +169,7 @@ def parse_kitti(kitti_dataset_dir, upload_dir):
         except Exception as e:
             return e
 
+
 class KittiDataset:
     def __init__(self, dataset_dir, output_dir):
         self.dataset_dir = dataset_dir
@@ -189,7 +191,7 @@ class KittiDataset:
         return check_info
 
     def import_dataset(self):
-        for bin_file in list_files(self.velodyne_dir, '.bin'):
+        for bin_file in track(list_files(self.velodyne_dir, '.bin'), description='progress'):
             file_name = splitext(basename(bin_file))[0]
             pcd_file = join(self.pc_dir, file_name + '.pcd')
             self.bin_to_pcd(bin_file, pcd_file)
@@ -246,34 +248,29 @@ class KittiDataset:
 
     @staticmethod
     def parse_cam_param(calib_file, cfg_file):
-            with open(calib_file, 'r', encoding='utf-8')as f:
-                datas = f.readlines()
-                p0 = np.array([float(x) for x in datas[0].split(' ')[1:]]).reshape(3, 4)
-                p2 = np.array([float(x) for x in datas[2].split(' ')[1:]]).reshape(3, 4)
-                r0 = np.array([float(x) for x in datas[4].split(' ')[1:]]).reshape(3, 3)
-                r0 = np.hstack((r0, np.array([0, 0, 1]).reshape(-1, 1)))
-                r0 = np.vstack((r0, np.array([0, 0, 0, 1])))
-                ext0 = np.array([float(x) for x in datas[5].split(' ')[1:]]).reshape(3, 4)
-                fx, cx, fy, cy = p2[0, 0], p2[0, 2], p2[1, 1], p2[1, 2]
-                cam_t = p2[:, -1]
-                ext_r = ext0[:, :3]
-                ext_t = (np.array(ext0[:, -1]) + np.array(cam_t)) * 0.01
-                ext2 = np.hstack((ext_r, ext_t.reshape(-1, 1)))
-                lidar2cam_matrix = np.vstack((ext2, np.array([0, 0, 0, 1])))
-                cfg_data = {
+        with open(calib_file, 'r', encoding='utf-8')as f:
+            datas = f.readlines()
+            p2 = np.array([float(x) for x in datas[2].split(' ')[1:]]).reshape(3, 4)
+            ext0 = np.array([float(x) for x in datas[5].split(' ')[1:]]).reshape(3, 4)
+            fx, cx, fy, cy = p2[0, 0], p2[0, 2], p2[1, 1], p2[1, 2]
+            cam_t = p2[:, -1]
+            ext_r = ext0[:, :3]
+            ext_t = (np.array(ext0[:, -1]) + np.array(cam_t)) * 0.01
+            ext2 = np.hstack((ext_r, ext_t.reshape(-1, 1)))
+            lidar2cam_matrix = np.vstack((ext2, np.array([0, 0, 0, 1])))
+            cfg_data = {
 
-                    "camera_internal": {
-                        "fx": fx,
-                        "fy": fy,
-                        "cx": cx,
-                        "cy": cy
-                    },
-                    "camera_external": lidar2cam_matrix.flatten().tolist()
-                }
-                with open(cfg_file, 'w', encoding='utf-8') as cf:
-                    json.dump([cfg_data], cf)
-                return cfg_data
-
+                "camera_internal": {
+                    "fx": fx,
+                    "fy": fy,
+                    "cx": cx,
+                    "cy": cy
+                },
+                "camera_external": lidar2cam_matrix.flatten().tolist()
+            }
+            with open(cfg_file, 'w', encoding='utf-8') as cf:
+                json.dump([cfg_data], cf)
+            return cfg_data
 
     def parse_result(self, label_file, cam_ext, result_file):
         ext_matrix = np.array(cam_ext).reshape(4, 4)
@@ -339,4 +336,3 @@ class KittiDataset:
                 num += 1
             with open(result_file, 'w', encoding='utf-8')as rf:
                 json.dump({"objects": objects}, rf)
-
