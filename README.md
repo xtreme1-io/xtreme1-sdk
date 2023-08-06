@@ -197,7 +197,7 @@ onto = my_dataset.query_ontology()
 # Query the ontology from your ontology center
 onto = x1_client.query_ontology(
     des_id='11111', 
-    des_type='ontology_center'
+    des_type='ontology'
 )
 ~~~
 
@@ -216,7 +216,7 @@ onto.import_ontology()
 # Import another existing ontology to current empty ontology
 onto2 = my_client.query_ontology(
     des_id='22222', 
-    des_type='ontology_center'
+    des_type='ontology'
 )
 # Create a copy of ontology
 # .copy() function clears the ids of ontology and classes/classifications
