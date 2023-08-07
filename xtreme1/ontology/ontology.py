@@ -22,7 +22,7 @@ class Ontology:
     ):
         self._client = client
         self._des_id = des_id
-        self._des_type = des_type
+        self._des_type = des_type.replace('_center', '')
         self._dataset_type = dataset_type.upper()
         self.classes = []
         self.classifications = []
