@@ -103,7 +103,7 @@ def parse_coco(src, out):
             if not imgs:
                 error = "The image('.jpg', '.png', '.jpeg', '.bmp') was not found in the zip package"
             else:
-                image_dir = ensure_dir(join(out, 'image'))
+                image_dir = ensure_dir(join(out, 'image_0'))
                 result_dir = ensure_dir(join(out, 'result'))
                 for img_file in imgs:
                     new_img = join(image_dir, basename(img_file))
