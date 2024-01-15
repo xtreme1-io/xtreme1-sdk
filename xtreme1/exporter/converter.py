@@ -38,7 +38,7 @@ class Result:
         results = []
         datas = []
         for fl in file_list:
-            if fl.split('/')[1] == 'result':
+            if fl.split('/')[-2] == 'result':
                 results.append(fl)
             else:
                 datas.append(fl)
@@ -53,7 +53,7 @@ class Result:
             id_result[result_content['dataId']] = result_content
         for data in datas:
             data_content = json.loads(zip_file.read(data))
-            data_result = id_result.get(data_content['id'], {})
+            data_result = id_result.get(data_content['dataId'], {})
             anno = {
                 'data': data_content,
                 'result': data_result
