@@ -30,6 +30,7 @@ def _get_label(obj):
         label = str('null')
     return label
 
+
 def polygon_area(x, y):
     area = 0
     n = len(x)
@@ -403,7 +404,7 @@ def gen_alpha(rz, ext_matrix, lidar_center):
 
     cam_point = ext_matrix @ np.array([np.cos(rz), np.sin(rz), 0, 1])
     cam_point_0 = ext_matrix @ np.array([0, 0, 0, 1])
-    ry = -1*(alpha_in_pi(np.arctan2(cam_point[2]-cam_point_0[2], cam_point[0]-cam_point_0[0])))
+    ry = -1 * (alpha_in_pi(np.arctan2(cam_point[2] - cam_point_0[2], cam_point[0] - cam_point_0[0])))
     cam_center = ext_matrix @ lidar_center.T
     theta = alpha_in_pi(np.arctan2(cam_center[0], cam_center[2]))
     alpha = ry - theta
@@ -416,9 +417,10 @@ def _to_kitti(annotation: list, export_folder: str):
         file_name = data_info.get('name')
         anno_objects = anno['result'].get('objects')
         if anno_objects:
-            config_url = data_info['cameraConfigUrl']
+            config_url = data_info['cameraConfig']['url']
             cam_param = requests.get(config_url).json()
-            obj_rect = {f"{x['trackId']}-{x['contour']['viewIndex']}": x for x in anno_objects if x['type'] == '2D_RECT'}
+            obj_rect = {f"{x['trackId']}-{x['contour']['viewIndex']}": x for x in anno_objects if
+                        x['type'] == '2D_RECT'}
             obj_3d = {x['trackId']: x for x in anno_objects if x['type'] == '3D_BOX'}
             for rect in obj_rect.values():
                 cam_index = rect['contour']['viewIndex']
@@ -439,7 +441,7 @@ def _to_kitti(annotation: list, export_folder: str):
                     ry, alpha = gen_alpha(cur_rz, ext_matrix, np.array(list(contour_3d['center3D'].values())))
 
                     point = list(contour_3d['center3D'].values())
-                    temp = np.hstack((np.array([point[0], point[1], point[2]-height/2]), np.array([1])))
+                    temp = np.hstack((np.array([point[0], point[1], point[2] - height / 2]), np.array([1])))
                     x, y, z = list((ext_matrix @ temp))[:3]
                     score = 1
                     string = f"{label} {truncated} {occluded} {alpha:.2f} " \
@@ -456,5 +458,3 @@ def _to_kitti(annotation: list, export_folder: str):
                     tf.write(string)
         else:
             continue
-
-
