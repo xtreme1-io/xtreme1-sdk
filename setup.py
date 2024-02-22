@@ -19,9 +19,10 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'rich',
-        'requests',
-        'nanoid'
+        "rich",
+        "requests",
+        "nanoid",
+        "numpy"
     ],
     python_requires='>=3.9',
 )
