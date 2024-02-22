@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import numpy as np
@@ -119,17 +120,16 @@ def parse_coco(src, out):
                         if anno['bbox']:
                             bbox = anno['bbox']
                             tool_type = 'RECTANGLE'
-                            points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0]+bbox[2], "y": bbox[1]+bbox[3]}]
+                            points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0] + bbox[2], "y": bbox[1] + bbox[3]}]
                         elif anno['segmentation']:
                             tool_type = 'POLYGON'
                             segment = anno['segmentation']
                             points = [{"x": seg_point[0], "y": seg_point[1]}
-                                      for seg_point in [segment[i:i+2] for i in range(len(segment))[::2]]]
+                                      for seg_point in [segment[i:i + 2] for i in range(len(segment))[::2]]]
                         elif anno['keypoints']:
                             tool_type = 'POLYLINE'
                             line = anno['keypoints']
                             points = [{"x": key_point[0], "y": key_point[1]}
-
 
                                       for key_point in [line[i:i + 2] for i in range(len(line))[::3]]]
                         else:
@@ -178,8 +178,8 @@ class KittiDataset:
         self.label_dir = join(dataset_dir, 'label_2')
         self.velodyne_dir = join(dataset_dir, 'velodyne')
         if not self.irregular_structure():
-            self.pc_dir = ensure_dir(join(output_dir, 'point_cloud'))
-            self.image0_dir = ensure_dir(join(output_dir, 'image0'))
+            self.pc_dir = ensure_dir(join(output_dir, 'lidar_point_cloud_0'))
+            self.image0_dir = ensure_dir(join(output_dir, 'camera_image_0'))
             self.camera_config_dir = ensure_dir(join(output_dir, 'camera_config'))
             self.result_dir = ensure_dir(join(output_dir, 'result'))
 
@@ -248,29 +248,39 @@ class KittiDataset:
 
     @staticmethod
     def parse_cam_param(calib_file, cfg_file):
-        with open(calib_file, 'r', encoding='utf-8')as f:
-            datas = f.readlines()
-            p2 = np.array([float(x) for x in datas[2].split(' ')[1:]]).reshape(3, 4)
-            ext0 = np.array([float(x) for x in datas[5].split(' ')[1:]]).reshape(3, 4)
-            fx, cx, fy, cy = p2[0, 0], p2[0, 2], p2[1, 1], p2[1, 2]
-            cam_t = p2[:, -1]
-            ext_r = ext0[:, :3]
-            ext_t = (np.array(ext0[:, -1]) + np.array(cam_t)) * 0.01
-            ext2 = np.hstack((ext_r, ext_t.reshape(-1, 1)))
-            lidar2cam_matrix = np.vstack((ext2, np.array([0, 0, 0, 1])))
-            cfg_data = {
+        with open(calib_file) as f:
+            for line in f.readlines():
+                if line[:2] == "P2":
+                    P2 = re.split(" ", line.strip())
+                    P2 = np.array(P2[-12:], np.float32)
+                    P2 = P2.reshape((3, 4))
+                if line[:14] == "Tr_velo_to_cam" or line[:11] == "Tr_velo_cam":
+                    vtc_mat = re.split(" ", line.strip())
+                    vtc_mat = np.array(vtc_mat[-12:], np.float32)
+                    vtc_mat = vtc_mat.reshape((3, 4))
+                    vtc_mat = np.concatenate([vtc_mat, [[0, 0, 0, 1]]])
+                if line[:7] == "R0_rect" or line[:6] == "R_rect":
+                    R0 = re.split(" ", line.strip())
+                    R0 = np.array(R0[-9:], np.float32)
+                    R0 = R0.reshape((3, 3))
+                    R0 = np.concatenate([R0, [[0], [0], [0]]], -1)
+                    R0 = np.concatenate([R0, [[0, 0, 0, 1]]])
+        vtc_mat = np.matmul(R0, vtc_mat)
 
-                "camera_internal": {
-                    "fx": fx,
-                    "fy": fy,
-                    "cx": cx,
-                    "cy": cy
-                },
-                "camera_external": lidar2cam_matrix.flatten().tolist()
-            }
-            with open(cfg_file, 'w', encoding='utf-8') as cf:
-                json.dump([cfg_data], cf)
-            return cfg_data
+        int_mat = P2[:, :3].ravel().tolist()
+
+        cfg_data = {
+            "camera_internal": {
+                "fx": int_mat[0],
+                "fy": int_mat[4],
+                "cx": int_mat[2],
+                "cy": int_mat[5]
+            },
+            "camera_external": vtc_mat.flatten().tolist()
+        }
+        with open(cfg_file, 'w', encoding='utf-8') as cf:
+            json.dump([cfg_data], cf)
+        return cfg_data
 
     def parse_result(self, label_file, cam_ext, result_file):
         ext_matrix = np.array(cam_ext).reshape(4, 4)
@@ -290,7 +300,7 @@ class KittiDataset:
                 ry = float(data[14])
                 cam_to_lidar_point = inv(ext_matrix) @ np.array([np.cos(-ry), 0, np.sin(-ry), 1])
                 point_0 = inv(ext_matrix) @ np.array([0, 0, 0, 1])
-                rz = np.arctan2(cam_to_lidar_point[1] - point_0[1], cam_to_lidar_point[0]-point_0[0])
+                rz = np.arctan2(cam_to_lidar_point[1] - point_0[1], cam_to_lidar_point[0] - point_0[0])
 
                 track_id = generate(size=16)
 
@@ -308,7 +318,7 @@ class KittiDataset:
                         "center3D": {
                             "x": lidar_center[0],
                             "y": lidar_center[1],
-                            "z": lidar_center[2] + height/2
+                            "z": lidar_center[2] + height / 2
                         },
                         "rotation3D": {
                             "x": 0,
@@ -319,20 +329,20 @@ class KittiDataset:
                 }
                 objects.append(obj)
                 obj_rect = {
-                        "type": "2D_RECT",
-                        "className": label,
-                        "trackId": track_id,
-                        "trackName": num,
-                        "contour": {
-                            "points": [{"x": x0, "y": y0}, {"x": x0, "y": y1},
-                                       {"x": x1, "y": y1}, {"x": x1, "y": y0}],
-                            "size3D": {"x": 0, "y": 0, "z": 0},
-                            "center3D": {"x": 0, "y": 0, "z": 0},
-                            "viewIndex": 0,
-                            "rotation3D": {"x": 0, "y": 0, "z": 0}
-                        }
+                    "type": "2D_RECT",
+                    "className": label,
+                    "trackId": track_id,
+                    "trackName": num,
+                    "contour": {
+                        "points": [{"x": x0, "y": y0}, {"x": x0, "y": y1},
+                                   {"x": x1, "y": y1}, {"x": x1, "y": y0}],
+                        "size3D": {"x": 0, "y": 0, "z": 0},
+                        "center3D": {"x": 0, "y": 0, "z": 0},
+                        "viewIndex": 0,
+                        "rotation3D": {"x": 0, "y": 0, "z": 0}
+                    }
                 }
                 objects.append(obj_rect)
                 num += 1
-            with open(result_file, 'w', encoding='utf-8')as rf:
+            with open(result_file, 'w', encoding='utf-8') as rf:
                 json.dump({"objects": objects}, rf)
