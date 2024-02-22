@@ -1,13 +1,14 @@
 import argparse
 import json
-from .exporter.converter import Result
-from .importer.parser import Parser
+from xtreme1.exporter.converter import Result
+from xtreme1.importer.parser import Parser
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, help='import or export', choices=['import', 'export'], required=True)
-    parser.add_argument('--src', type=str, help='source path(It is a folder for import or a zip package for export)', required=True)
+    parser.add_argument('--src', type=str, help='source path(It is a folder for import or a zip package for export)',
+                        required=True)
     parser.add_argument('--dst', type=str, help='The path to save the results', required=True)
     parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored,'
                                                               'if none, the output is in the console')
@@ -41,9 +42,9 @@ def main():
         message = str(e)
 
     rps_data = {
-            "code": code,
-            "message": message
-        }
+        "code": code,
+        "message": message
+    }
     if not response:
         print(rps_data)
     else:
