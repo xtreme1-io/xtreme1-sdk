@@ -13,7 +13,7 @@ def main():
     parser.add_argument('--rps', type=str, default=None, help='The json file in which the response is stored,'
                                                               'if none, the output is in the console')
     parser.add_argument('--fmt', type=str, default='xtreme1', help='object format(xtreme1,coco,kitti,voc,labelme)',
-                        choices=['coco', 'voc', 'labelme', 'kitti'], required=True)
+                        choices=['coco', 'voc', 'labelme', 'kitti', 'kitti_like'], required=True)
     args = parser.parse_args()
 
     mode = args.mode

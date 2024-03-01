@@ -11,6 +11,7 @@ from os.path import *
 from xml.dom.minidom import Document
 from .._version import __version__
 from ..exceptions import ConverterException
+from xtreme1._others import groupby
 
 
 def _get_label(obj):
@@ -411,6 +412,11 @@ def gen_alpha(rz, ext_matrix, lidar_center):
     return ry, alpha
 
 
+def find_attr(data_list, target_key):
+    attrs_map = {x['name']: x['value'] for x in data_list}
+    return eval(attrs_map.get(target_key, '0'))
+
+
 def _to_kitti(annotation: list, export_folder: str):
     for anno in track(annotation, description='progress'):
         data_info = anno['data']
@@ -426,8 +432,100 @@ def _to_kitti(annotation: list, export_folder: str):
                 cam_index = rect['contour']['viewIndex']
                 ext_matrix = np.array(cam_param[cam_index]['camera_external']).reshape(4, 4)
                 label = rect['className']
-                truncated = "%.2f" % 0
-                occluded = 0
+
+                try:
+                    truncated = find_attr(rect['classValues'], 'truncated')
+                    occluded = find_attr(rect['classValues'], 'occluded')
+                except Exception:
+                    truncated = "%.2f" % 0
+                    occluded = 0
+
+                x_list = []
+                y_list = []
+                for one_point in rect['contour']['points']:
+                    x_list.append(one_point['x'])
+                    y_list.append(one_point['y'])
+                if rect['trackId'] in obj_3d.keys():
+                    contour_3d = obj_3d[rect['trackId']]['contour']
+                    length, width, height = contour_3d['size3D'].values()
+                    cur_rz = contour_3d['rotation3D']['z']
+
+                    ry, alpha = gen_alpha(cur_rz, ext_matrix, np.array(list(contour_3d['center3D'].values())))
+
+                    point = list(contour_3d['center3D'].values())
+                    temp = np.hstack((np.array([point[0], point[1], point[2] - height / 2]), np.array([1])))
+                    x, y, z = list((ext_matrix @ temp))[:3]
+                    score = 1
+                    string = f"{label} {truncated} {occluded} {alpha:.2f} " \
+                             f"{min(x_list):.2f} {min(y_list):.2f} {max(x_list):.2f} {max(y_list):.2f} " \
+                             f"{height:.2f} {width:.2f} {length:.2f} " \
+                             f"{x:.2f} {y:.2f} {z:.2f} {ry:.2f} {score}\n"
+                else:
+                    string = f"DontCare -1 -1 -10 " \
+                             f"{min(x_list):.2f} {min(y_list):.2f} {max(x_list):.2f} {max(y_list):.2f} " \
+                             f"-1 -1 -1 -1000 -1000 -1000 -10\n"
+                txt_file = join(export_folder, f"label_{cam_index}", file_name + '.txt')
+                ensure_dir(dirname(txt_file))
+                with open(txt_file, 'a+', encoding='utf-8') as tf:
+                    tf.write(string)
+        else:
+            continue
+
+
+def _to_kitti_like(annotation: list, export_folder: str):
+    for anno in track(annotation, description='progress'):
+        data_info = anno['data']
+        file_name = data_info.get('name')
+        anno_objects = anno['result'].get('objects')
+        if anno_objects:
+            config_url = data_info['cameraConfig']['url']
+            cam_param = requests.get(config_url['url']).json()
+            n_cams = len(cam_param)
+            rects = [x for x in anno_objects if x['type'] == '2D_RECT']
+            rect_map = groupby(rects, func=lambda x: x["trackId"])
+            obj_3d = {x['trackId']: x for x in anno_objects if x['type'] == '3D_BOX'}
+
+            # 补充2D结果
+            for track_id, inst_3d in obj_3d.items():
+                label = inst_3d["className"]
+                cur_views = {x["contour"]["viewIndex"] for x in rect_map.get(track_id, [])}
+                for view_id in range(n_cams):
+                    if view_id in cur_views:
+                        continue
+
+                    add_rect = {
+                        "type": "2D_RECT",
+                        "trackId": track_id,
+                        "classValues": [],
+                        "contour": {
+                            "points": [
+                                {
+                                    "x": 0,
+                                    "y": 0
+                                },
+                                {
+                                    "x": 0,
+                                    "y": 0
+                                }
+                            ],
+                            "viewIndex": view_id
+                        },
+                        "className": label
+                    }
+                    rects.append(add_rect)
+
+            for rect in rects:
+                cam_index = rect['contour']['viewIndex']
+                ext_matrix = np.array(cam_param[cam_index]['camera_external']).reshape(4, 4)
+                label = rect['className']
+
+                try:
+                    truncated = find_attr(rect['classValues'], 'truncated')
+                    occluded = find_attr(rect['classValues'], 'occluded')
+                except Exception:
+                    truncated = "%.2f" % 0
+                    occluded = 0
+
                 x_list = []
                 y_list = []
                 for one_point in rect['contour']['points']:

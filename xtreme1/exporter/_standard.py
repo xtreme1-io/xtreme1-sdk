@@ -11,7 +11,6 @@ def _to_json(annotation: list, export_folder: str):
             json.dump(anno.get('result'), f, indent=1, ensure_ascii=False)
 
 
-
 def _to_csv(annotation: dict, dataset_name: str, export_folder: str):
     pass
 
