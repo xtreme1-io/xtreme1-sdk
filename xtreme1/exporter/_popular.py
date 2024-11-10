@@ -60,9 +60,10 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
     category_id = 1
     for anno in track(annotation, description='progress'):
         try:
-            img_width = anno['data']['width']
-            img_height = anno['data']['height']
-            img_url = anno['data']['imageUrl']
+            info = anno["data"]["images"][0]
+            img_width = info['width']
+            img_height = info['height']
+            img_url = info['url']
             result = anno['result']
             if not result:
                 continue

@@ -38,9 +38,10 @@ class Result:
         results = []
         datas = []
         for fl in file_list:
-            if fl.split('/')[-2] == 'result':
+            pts = fl.strip('/').split('/')
+            if len(pts) >= 2 and pts[-2] == 'result':
                 results.append(fl)
-            else:
+            elif len(pts) >= 2 and pts[-2] == 'data':
                 datas.append(fl)
         id_result = {}
         annotation = []

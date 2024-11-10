@@ -41,6 +41,8 @@ def main():
         code = "ERROR"
         message = str(e)
 
+        raise e
+
     rps_data = {
         "code": code,
         "message": message
