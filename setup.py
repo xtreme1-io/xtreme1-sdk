@@ -24,5 +24,8 @@ setuptools.setup(
         "nanoid",
         "numpy"
     ],
+    entry_points={
+        'console_scripts': ['script_ctl=xtreme1.script_ctl:main'],
+    },
     python_requires='>=3.9',
 )
