@@ -15,21 +15,9 @@ from xtreme1._others import groupby
 
 
 def _get_label(obj):
-    if 'className' in obj.keys():
-        label0 = obj['className']
-        if label0:
-            label = label0
-        else:
-            label = 'null'
-    elif 'modelClass' in obj.keys():
-        label0 = obj['modelClass']
-        if label0:
-            label = label0
-        else:
-            label = 'null'
-    else:
-        label = str('null')
-    return label
+    # xtreme1 sends `className: null` for objects without a dataset class (e.g. imported results),
+    # whose label is kept in `modelClass`.
+    return obj.get('className') or obj.get('modelClass') or 'null'
 
 
 def polygon_area(x, y):

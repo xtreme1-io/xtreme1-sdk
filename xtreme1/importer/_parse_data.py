@@ -117,16 +117,16 @@ def parse_coco(src, out):
                     json_file = join(result_dir, splitext(name)[0] + '.json')
                     objects = []
                     for anno in annos:
-                        if anno['bbox']:
+                        if anno.get('bbox'):
                             bbox = anno['bbox']
-                            tool_type = 'RECTANGLE'
+                            tool_type = 'BOUNDING_BOX'
                             points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0] + bbox[2], "y": bbox[1] + bbox[3]}]
-                        elif anno['segmentation']:
+                        elif anno.get('segmentation'):
                             tool_type = 'POLYGON'
                             segment = anno['segmentation']
                             points = [{"x": seg_point[0], "y": seg_point[1]}
                                       for seg_point in [segment[i:i + 2] for i in range(len(segment))[::2]]]
-                        elif anno['keypoints']:
+                        elif anno.get('keypoints'):
                             tool_type = 'POLYLINE'
                             line = anno['keypoints']
                             points = [{"x": key_point[0], "y": key_point[1]}
