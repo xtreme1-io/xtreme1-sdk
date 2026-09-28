@@ -85,6 +85,22 @@ def parse_xtreme1(src, dst):
     return ''
 
 
+def _polygon_points(segmentation):
+    """Points of a COCO polygon, or None when there is no polygon to read.
+
+    The spec stores polygons as a list of polygons, [[x, y, x, y, ...], ...],
+    but this project used to write a single flat array, so both are accepted.
+    RLE (a dict, used when iscrowd is 1) is not a polygon and returns None.
+    Only the first ring is kept: one annotation maps to one object.
+    """
+    if not segmentation or isinstance(segmentation, dict):
+        return None
+    ring = segmentation[0] if isinstance(segmentation[0], (list, tuple)) else segmentation
+    if len(ring) < 6:  # fewer than three points is not an area
+        return None
+    return [{"x": ring[i], "y": ring[i + 1]} for i in range(0, len(ring) - 1, 2)]
+
+
 def parse_coco(src, out):
     imgs = list_files(src, ['.jpg', '.png', '.jpeg', '.bmp'])
     coco_files = list_files(src, ['.json'])
@@ -117,15 +133,14 @@ def parse_coco(src, out):
                     json_file = join(result_dir, splitext(name)[0] + '.json')
                     objects = []
                     for anno in annos:
-                        if anno.get('bbox'):
+                        polygon = _polygon_points(anno.get('segmentation'))
+                        if polygon:
+                            tool_type = 'POLYGON'
+                            points = polygon
+                        elif anno.get('bbox'):
                             bbox = anno['bbox']
                             tool_type = 'BOUNDING_BOX'
                             points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0] + bbox[2], "y": bbox[1] + bbox[3]}]
-                        elif anno.get('segmentation'):
-                            tool_type = 'POLYGON'
-                            segment = anno['segmentation']
-                            points = [{"x": seg_point[0], "y": seg_point[1]}
-                                      for seg_point in [segment[i:i + 2] for i in range(len(segment))[::2]]]
                         elif anno.get('keypoints'):
                             tool_type = 'POLYLINE'
                             line = anno['keypoints']
