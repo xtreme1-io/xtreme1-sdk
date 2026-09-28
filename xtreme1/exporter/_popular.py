@@ -98,8 +98,7 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                             segmentation.append(round(point['x']))
                             segmentation.append(round(point['y']))
                         aera = polygon_area(px, py)
-                        x0 = round(min(px))
-                        y0 = round(min(py))
+                        xs, ys = segmentation[::2], segmentation[1::2]
                         new_anno = {
                             "id": object_id,
                             "image_id": img_id,
@@ -108,7 +107,7 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                             # array here is what pycocotools chokes on.
                             "segmentation": [segmentation],
                             "area": aera,
-                            "bbox": [x0, y0, round(max(px)) - x0, round(max(py)) - y0],
+                            "bbox": [min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)],
                             "iscrowd": 0
                         }
                     elif tool_type == 'POLYLINE':

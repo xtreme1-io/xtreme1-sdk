@@ -95,7 +95,7 @@ def _polygon_points(segmentation):
     """
     if not segmentation or isinstance(segmentation, dict):
         return None
-    ring = segmentation[0] if isinstance(segmentation[0], (list, tuple)) else segmentation
+    ring = segmentation[0] if isinstance(segmentation[0], list) else segmentation
     if len(ring) < 6:  # fewer than three points is not an area
         return None
     return [{"x": ring[i], "y": ring[i + 1]} for i in range(0, len(ring) - 1, 2)]
