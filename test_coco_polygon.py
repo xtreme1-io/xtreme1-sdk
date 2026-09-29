@@ -2,7 +2,7 @@
 
 Run with `python test_coco_polygon.py`; it needs nothing but the package.
 """
-from xtreme1.importer._parse_data import _polygon_points
+from xtreme1.importer._parse_data import _polygon_rings
 
 SQUARE = [10, 10, 110, 10, 110, 60, 10, 60]
 POINTS = [{"x": 10, "y": 10}, {"x": 110, "y": 10}, {"x": 110, "y": 60}, {"x": 10, "y": 60}]
@@ -10,27 +10,31 @@ POINTS = [{"x": 10, "y": 10}, {"x": 110, "y": 10}, {"x": 110, "y": 60}, {"x": 10
 
 def test_reads_the_shape_the_spec_uses():
     # COCO stores a polygon as a list of polygons.
-    assert _polygon_points([SQUARE]) == POINTS
+    assert _polygon_rings([SQUARE]) == [POINTS]
 
 
 def test_still_reads_the_flat_array_older_exports_wrote():
-    assert _polygon_points(SQUARE) == POINTS
+    assert _polygon_rings(SQUARE) == [POINTS]
 
 
-def test_keeps_the_first_ring_only():
-    # One annotation becomes one object, so a multi-part mask keeps its outer ring.
-    assert _polygon_points([SQUARE, [0, 0, 5, 0, 5, 5]]) == POINTS
+def test_every_part_of_a_split_annotation_is_kept():
+    # An occluder splits one object into disjoint polygons; none may be dropped.
+    other = [0, 0, 50, 0, 50, 50]
+    rings = _polygon_rings([SQUARE, other])
+    assert len(rings) == 2
+    assert rings[0] == POINTS
+    assert rings[1] == [{"x": 0, "y": 0}, {"x": 50, "y": 0}, {"x": 50, "y": 50}]
 
 
 def test_rle_is_not_a_polygon():
     # iscrowd=1 stores {"counts": ..., "size": ...}; the caller falls back to bbox.
-    assert _polygon_points({"counts": "abc", "size": [200, 200]}) is None
+    assert _polygon_rings({"counts": "abc", "size": [200, 200]}) == []
 
 
 def test_nothing_to_read():
-    assert _polygon_points(None) is None
-    assert _polygon_points([]) is None
-    assert _polygon_points([[10, 10, 20, 20]]) is None  # two points is not an area
+    assert _polygon_rings(None) == []
+    assert _polygon_rings([]) == []
+    assert _polygon_rings([[10, 10, 20, 20]]) == []  # two points is not an area
 
 
 def test_exported_polygon_is_nested_and_has_a_box():
