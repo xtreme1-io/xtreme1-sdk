@@ -85,6 +85,25 @@ def parse_xtreme1(src, dst):
     return ''
 
 
+def _polygon_rings(segmentation):
+    """Every polygon of a COCO segmentation, as lists of points.
+
+    The spec stores them as a list of polygons, [[x, y, x, y, ...], ...], but
+    this project used to write a single flat array, so both are accepted. RLE
+    (a dict, used when iscrowd is 1) is not a polygon and yields nothing.
+
+    An annotation split by an occluder holds several disjoint polygons that
+    together make up one object. An object carries a single contour today, so
+    each part has to become its own; once the result structure grows a
+    segmentation field they belong on one object again.
+    """
+    if not segmentation or isinstance(segmentation, dict):
+        return []
+    rings = segmentation if isinstance(segmentation[0], list) else [segmentation]
+    return [[{"x": r[i], "y": r[i + 1]} for i in range(0, len(r) - 1, 2)]
+            for r in rings if len(r) >= 6]  # fewer than three points is not an area
+
+
 def parse_coco(src, out):
     imgs = list_files(src, ['.jpg', '.png', '.jpeg', '.bmp'])
     coco_files = list_files(src, ['.json'])
@@ -117,15 +136,22 @@ def parse_coco(src, out):
                     json_file = join(result_dir, splitext(name)[0] + '.json')
                     objects = []
                     for anno in annos:
+                        rings = _polygon_rings(anno.get('segmentation'))
+                        if rings:
+                            for part, points in enumerate(rings, start=1):
+                                objects.append({
+                                    "type": 'POLYGON',
+                                    # Parts of one annotation, so the names stay distinct.
+                                    "trackName": str(anno['id']) if len(rings) == 1
+                                    else '%s-%d' % (anno['id'], part),
+                                    "className": id_label_mapping[anno['category_id']],
+                                    "contour": {"points": points}
+                                })
+                            continue
                         if anno.get('bbox'):
                             bbox = anno['bbox']
                             tool_type = 'BOUNDING_BOX'
                             points = [{"x": bbox[0], "y": bbox[1]}, {"x": bbox[0] + bbox[2], "y": bbox[1] + bbox[3]}]
-                        elif anno.get('segmentation'):
-                            tool_type = 'POLYGON'
-                            segment = anno['segmentation']
-                            points = [{"x": seg_point[0], "y": seg_point[1]}
-                                      for seg_point in [segment[i:i + 2] for i in range(len(segment))[::2]]]
                         elif anno.get('keypoints'):
                             tool_type = 'POLYLINE'
                             line = anno['keypoints']

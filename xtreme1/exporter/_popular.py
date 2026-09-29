@@ -98,13 +98,17 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                             segmentation.append(round(point['x']))
                             segmentation.append(round(point['y']))
                         aera = polygon_area(px, py)
+                        xs, ys = segmentation[::2], segmentation[1::2]
                         new_anno = {
                             "id": object_id,
                             "image_id": img_id,
                             "category_id": category_mapping[label],
-                            "segmentation": segmentation,
+                            # COCO stores a polygon as a list OF polygons; a flat
+                            # array here is what pycocotools chokes on.
+                            "segmentation": [segmentation] if segmentation else [],
                             "area": aera,
-                            "bbox": [],
+                            "bbox": [min(xs), min(ys), max(xs) - min(xs),
+                                     max(ys) - min(ys)] if xs else [],
                             "iscrowd": 0
                         }
                     elif tool_type == 'POLYLINE':
@@ -113,12 +117,14 @@ def _to_coco(annotation: list, dataset_name: str, export_folder: str):
                             keypoints.append(round(point['x']))
                             keypoints.append(round(point['y']))
                             keypoints.append(2)
+                        kx, ky = keypoints[::3], keypoints[1::3]
                         new_anno = {
                             "id": object_id,
                             "image_id": img_id,
                             "category_id": category_mapping[label],
                             "segmentation": [],
-                            "bbox": [],
+                            "bbox": [min(kx), min(ky), max(kx) - min(kx),
+                                     max(ky) - min(ky)] if kx else [],
                             "keypoints": keypoints,
                             "num_keypoints": len(points),
                             "iscrowd": 0
